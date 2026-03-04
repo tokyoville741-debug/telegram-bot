@@ -66,5 +66,23 @@ def explore_binance(message):
         "Visit Binance official website to discover all products and services:\n"
         "https://www.binance.com"
     )
+from flask import Flask
+import os
 
-bot.infinity_polling()
+app = Flask(__name__)
+
+@app.route('/')
+def home():
+    return "Bot is running!"
+
+if __name__ == "__main__":
+    from threading import Thread
+    import os
+
+    bot.remove_webhook()
+
+    # Lancer le bot Telegram dans un thread séparé
+    Thread(target=bot.infinity_polling).start()
+
+    # Lancer Flask pour que Render détecte le port
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)))
