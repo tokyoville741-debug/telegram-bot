@@ -1,7 +1,9 @@
 import telebot
 from telebot import types
 import os
+from openai import OpenAI
 
+client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 BOT_TOKEN = os.environ.get("BOT_TOKEN")
 
 bot = telebot.TeleBot(BOT_TOKEN)
@@ -74,6 +76,29 @@ app = Flask(__name__)
 @app.route('/')
 def home():
     return "Bot is running!"
+def explore_binance(message):
+    ...
+    
+
+# 👉 AJOUTE ICI 👇
+
+@bot.message_handler(func=lambda message: True)
+def handle_message(message):
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": "You are OpenClaw AI Coach, an intelligent assistant specialized in Binance and crypto education."},
+                {"role": "user", "content": message.text}
+            ]
+        )
+
+        reply = response.choices[0].message.content
+        bot.reply_to(message, reply)
+
+    except Exception as e:
+        bot.reply_to(message, "⚠️ Error connecting to AI.")
+
 
 if __name__ == "__main__":
     from threading import Thread
