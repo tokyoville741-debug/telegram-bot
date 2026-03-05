@@ -1,15 +1,23 @@
+import os
 import telebot
 from telebot import types
-import os
 from openai import OpenAI
 from flask import Flask, request
 
 # ==============================
-# CONFIG
+# CONFIGURATION
 # ==============================
 
-client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
-BOT_TOKEN = os.environ.get("BOT_TOKEN")
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+
+if not BOT_TOKEN:
+    raise ValueError("BOT_TOKEN is missing")
+
+if not OPENAI_API_KEY:
+    raise ValueError("OPENAI_API_KEY is missing")
+
+client = OpenAI(api_key=OPENAI_API_KEY)
 
 bot = telebot.TeleBot(BOT_TOKEN)
 app = Flask(__name__)
@@ -21,10 +29,11 @@ app = Flask(__name__)
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    btn1 = types.KeyboardButton("📚 Learn Binance Products")
-    btn2 = types.KeyboardButton("🧠 Take a Crypto Quiz")
-    btn3 = types.KeyboardButton("🚀 Explore Binance")
-    markup.add(btn1, btn2, btn3)
+    markup.add(
+        types.KeyboardButton("📚 Learn Binance Products"),
+        types.KeyboardButton("🧠 Take a Crypto Quiz"),
+        types.KeyboardButton("🚀 Explore Binance")
+    )
 
     bot.send_message(
         message.chat.id,
@@ -35,7 +44,7 @@ def send_welcome(message):
     )
 
 
-@bot.message_handler(func=lambda message: message.text == "📚 Learn Binance Products")
+@bot.message_handler(func=lambda m: m.text == "📚 Learn Binance Products")
 def learn_products(message):
     bot.send_message(
         message.chat.id,
@@ -47,7 +56,7 @@ def learn_products(message):
     )
 
 
-@bot.message_handler(func=lambda message: message.text == "🧠 Take a Crypto Quiz")
+@bot.message_handler(func=lambda m: m.text == "🧠 Take a Crypto Quiz")
 def crypto_quiz(message):
     bot.send_message(
         message.chat.id,
@@ -60,7 +69,7 @@ def crypto_quiz(message):
     )
 
 
-@bot.message_handler(func=lambda message: message.text in ["A", "B", "C"])
+@bot.message_handler(func=lambda m: m.text in ["A", "B", "C"])
 def quiz_answer(message):
     if message.text == "A":
         bot.send_message(message.chat.id, "✅ Correct! A Rollup is a Layer 2 scaling solution.")
@@ -68,7 +77,7 @@ def quiz_answer(message):
         bot.send_message(message.chat.id, "❌ Not quite. The correct answer is A.")
 
 
-@bot.message_handler(func=lambda message: message.text == "🚀 Explore Binance")
+@bot.message_handler(func=lambda m: m.text == "🚀 Explore Binance")
 def explore_binance(message):
     bot.send_message(
         message.chat.id,
@@ -79,10 +88,10 @@ def explore_binance(message):
 
 
 # ==============================
-# AI RESPONSE HANDLER
+# AI HANDLER
 # ==============================
 
-@bot.message_handler(func=lambda message: True)
+@bot.message_handler(func=lambda m: True)
 def handle_message(message):
     try:
         response = client.chat.completions.create(
@@ -97,30 +106,30 @@ def handle_message(message):
         bot.reply_to(message, reply)
 
     except Exception as e:
-        print(e)
+        print("OpenAI Error:", e)
         bot.reply_to(message, "⚠️ Error connecting to AI.")
 
 
 # ==============================
-# FLASK ROUTES
+# FLASK ROUTES (WEBHOOK)
 # ==============================
 
-@app.route('/', methods=['POST'])
-def webhook():
-    json_str = request.get_data().decode('UTF-8')
+@app.route("/", methods=["POST"])
+def telegram_webhook():
+    json_str = request.get_data().decode("utf-8")
     update = telebot.types.Update.de_json(json_str)
     bot.process_new_updates([update])
-    return '', 200
+    return "OK", 200
 
 
-@app.route('/')
-def home():
-    return "Bot is running!"
+@app.route("/", methods=["GET"])
+def health_check():
+    return "Bot is running!", 200
 
 
 # ==============================
-# START SERVER
+# IMPORTANT FOR GUNICORN
 # ==============================
 
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=int(os.environ.get('PORT', 10000)))
+# Ne PAS utiliser app.run() en production
+# Gunicorn va automatiquement détecter "app"
