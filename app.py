@@ -10,6 +10,7 @@ from flask import Flask, request
 
 client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 BOT_TOKEN = os.environ.get("BOT_TOKEN")
+WEBHOOK_URL = os.environ.get("WEBHOOK_URL")  # 👉 On ajoute ça
 
 bot = telebot.TeleBot(BOT_TOKEN)
 app = Flask(__name__)
@@ -101,7 +102,7 @@ def handle_message(message):
 
 
 # ==============================
-# FLASK ROUTES (WEBHOOK)
+# FLASK ROUTES
 # ==============================
 
 @app.route('/')
@@ -118,8 +119,17 @@ def webhook():
 
 
 # ==============================
-# RUN SERVER
+# START SERVER + AUTO WEBHOOK
 # ==============================
 
 if __name__ == "__main__":
+
+    # Supprime ancien webhook
+    bot.remove_webhook()
+
+    # Configure le nouveau webhook
+    if WEBHOOK_URL:
+        bot.set_webhook(url=f"{WEBHOOK_URL}/webhook")
+        print("Webhook set successfully!")
+
     app.run(host="0.0.0.0", port=int(os.environ.get('PORT', 10000)))
