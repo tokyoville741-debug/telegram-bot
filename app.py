@@ -19,7 +19,9 @@ if not OPENAI_API_KEY:
 
 client = OpenAI(api_key=OPENAI_API_KEY)
 
-bot = telebot.TeleBot(BOT_TOKEN)
+# 🔥 CORRECTION ICI
+bot = telebot.TeleBot(BOT_TOKEN, threaded=False)
+
 app = Flask(__name__)
 
 # ==============================
@@ -127,11 +129,3 @@ def telegram_webhook():
 @app.route("/", methods=["GET"])
 def health_check():
     return "Bot is running!", 200
-
-
-# ==============================
-# IMPORTANT FOR GUNICORN
-# ==============================
-
-# NE PAS utiliser app.run() en production
-# Gunicorn détecte automatiquement "app"
