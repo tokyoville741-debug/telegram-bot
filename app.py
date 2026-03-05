@@ -1,93 +1,78 @@
 from flask import Flask, request
-import telebot
+import requests
 from openai import OpenAI
 import os
 
-# ==============================
-# CONFIGURATION
-# ==============================
-
-TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-
-bot = telebot.TeleBot(TELEGRAM_TOKEN)
-
-client = OpenAI(
-    api_key=OPENAI_API_KEY
-)
-
 app = Flask(__name__)
 
-# ==============================
-# PAGE TEST
-# ==============================
+# =========================
+# CONFIG
+# =========================
 
-@app.route("/", methods=["GET"])
+OPENAI_API_KEY = "TA_CLE_OPENAI"
+TELEGRAM_TOKEN = "TON_TOKEN_TELEGRAM"
+
+client = OpenAI(api_key=OPENAI_API_KEY)
+
+# =========================
+# PAGE HOME
+# =========================
+
+@app.route("/")
 def home():
     return "OpenClaw AI Coach Bot actif 🚀"
 
-# ==============================
+
+# =========================
 # WEBHOOK TELEGRAM
-# ==============================
+# =========================
 
-@app.route("/", methods=["POST"])
+@app.route("/webhook", methods=["POST"])
 def webhook():
-    json_string = request.stream.read().decode("utf-8")
-    update = telebot.types.Update.de_json(json_string)
-    bot.process_new_updates([update])
-    return "OK", 200
+
+    data = request.json
+
+    if "message" in data:
+
+        chat_id = data["message"]["chat"]["id"]
+        user_message = data["message"].get("text")
+
+        if user_message:
+
+            # Réponse IA
+            response = client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "Tu es OpenClaw AI Coach, un assistant intelligent, utile et clair."
+                    },
+                    {
+                        "role": "user",
+                        "content": user_message
+                    }
+                ],
+                max_tokens=500
+            )
+
+            reply = response.choices[0].message.content
+
+            # Envoyer réponse à Telegram
+            url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
+
+            payload = {
+                "chat_id": chat_id,
+                "text": reply
+            }
+
+            requests.post(url, json=payload)
+
+    return "ok"
 
 
-# ==============================
-# COMMANDE START
-# ==============================
-
-@bot.message_handler(commands=['start'])
-def start(message):
-    bot.reply_to(
-        message,
-        "👋 Bonjour ! Je suis OpenClaw AI Coach.\n\nPose moi une question et je te répondrai avec l'IA."
-    )
-
-
-# ==============================
-# IA CHAT
-# ==============================
-
-@bot.message_handler(func=lambda message: True)
-def ai_chat(message):
-
-    user_message = message.text
-
-    try:
-
-        response = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[
-                {
-                    "role": "system",
-                    "content": "Tu es un assistant intelligent, utile et précis."
-                },
-                {
-                    "role": "user",
-                    "content": user_message
-                }
-            ],
-            max_tokens=500
-        )
-
-        reply = response.choices[0].message.content
-
-        bot.reply_to(message, reply)
-
-    except Exception as e:
-
-        bot.reply_to(message, "❌ Erreur IA : " + str(e))
-
-
-# ==============================
-# LANCEMENT
-# ==============================
+# =========================
+# RUN
+# =========================
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)))
+    app.run(host="0.0.0.0", port=10000)
