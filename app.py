@@ -39,7 +39,6 @@ def send_welcome(message):
     bot.send_message(
         message.chat.id,
         "🚀 Welcome to OpenClaw AI\n\n"
-        "Your intelligent assistant for the Binance ecosystem.\n\n"
         "Choose an option below 👇",
         reply_markup=markup
     )
@@ -50,10 +49,10 @@ def learn_products(message):
     bot.send_message(
         message.chat.id,
         "📚 Binance Products Overview:\n\n"
-        "🔹 Spot Trading – Buy and sell crypto instantly.\n"
-        "🔹 Futures – Trade with leverage.\n"
-        "🔹 Earn – Passive income products.\n"
-        "🔹 Staking – Earn rewards by locking assets."
+        "🔹 Spot Trading\n"
+        "🔹 Futures\n"
+        "🔹 Earn\n"
+        "🔹 Staking"
     )
 
 
@@ -61,7 +60,6 @@ def learn_products(message):
 def crypto_quiz(message):
     bot.send_message(
         message.chat.id,
-        "🧠 Quiz Time!\n\n"
         "What is a Rollup?\n\n"
         "A) Layer 2 scaling solution\n"
         "B) Crypto wallet\n"
@@ -73,19 +71,9 @@ def crypto_quiz(message):
 @bot.message_handler(func=lambda m: m.text in ["A", "B", "C"])
 def quiz_answer(message):
     if message.text == "A":
-        bot.send_message(message.chat.id, "✅ Correct! A Rollup is a Layer 2 scaling solution.")
+        bot.send_message(message.chat.id, "Correct! 🎉")
     else:
-        bot.send_message(message.chat.id, "❌ Not quite. The correct answer is A.")
-
-
-@bot.message_handler(func=lambda m: m.text == "🚀 Explore Binance")
-def explore_binance(message):
-    bot.send_message(
-        message.chat.id,
-        "🚀 Explore Binance:\n\n"
-        "Visit Binance official website:\n"
-        "https://www.binance.com"
-    )
+        bot.send_message(message.chat.id, "Wrong. The answer is A.")
 
 
 # ==============================
@@ -93,12 +81,12 @@ def explore_binance(message):
 # ==============================
 
 @bot.message_handler(func=lambda m: True)
-def handle_message(message):
+def handle_ai(message):
     try:
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
-                {"role": "system", "content": "You are OpenClaw AI Coach specialized in Binance and crypto education."},
+                {"role": "system", "content": "You are a crypto education assistant."},
                 {"role": "user", "content": message.text}
             ]
         )
@@ -108,11 +96,11 @@ def handle_message(message):
 
     except Exception as e:
         print("OpenAI Error:", e)
-        bot.reply_to(message, "⚠️ Error connecting to AI.")
+        bot.reply_to(message, "AI error.")
 
 
 # ==============================
-# FLASK ROUTES (WEBHOOK)
+# WEBHOOK ROUTE
 # ==============================
 
 @app.route("/", methods=["POST"])
@@ -128,12 +116,3 @@ def telegram_webhook():
 @app.route("/", methods=["GET"])
 def health_check():
     return "Bot is running!", 200
-
-
-# ==============================
-# RUN SERVER (IMPORTANT FOR RENDER)
-# ==============================
-
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 10000))
-    app.run(host="0.0.0.0", port=port)
