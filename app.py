@@ -19,7 +19,6 @@ if not OPENAI_API_KEY:
 
 client = OpenAI(api_key=OPENAI_API_KEY)
 
-# 🔥 CORRECTION ICI
 bot = telebot.TeleBot(BOT_TOKEN, threaded=False)
 
 app = Flask(__name__)
@@ -129,3 +128,12 @@ def telegram_webhook():
 @app.route("/", methods=["GET"])
 def health_check():
     return "Bot is running!", 200
+
+
+# ==============================
+# RUN SERVER (IMPORTANT FOR RENDER)
+# ==============================
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)
