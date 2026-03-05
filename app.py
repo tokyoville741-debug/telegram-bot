@@ -20,7 +20,6 @@ if not OPENAI_API_KEY:
 client = OpenAI(api_key=OPENAI_API_KEY)
 
 bot = telebot.TeleBot(BOT_TOKEN, threaded=False)
-
 app = Flask(__name__)
 
 # ==============================
@@ -38,8 +37,7 @@ def send_welcome(message):
 
     bot.send_message(
         message.chat.id,
-        "🚀 Welcome to OpenClaw AI\n\n"
-        "Choose an option below 👇",
+        "🚀 Welcome to OpenClaw AI\n\nChoose an option below 👇",
         reply_markup=markup
     )
 
@@ -77,26 +75,31 @@ def quiz_answer(message):
 
 
 # ==============================
-# AI HANDLER
+# AI RESPONSE FUNCTION
 # ==============================
 
-@bot.message_handler(func=lambda m: True)
-def handle_ai(message):
+def generate_ai_response(user_message):
     try:
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
                 {"role": "system", "content": "You are a crypto education assistant."},
-                {"role": "user", "content": message.text}
-            ]
+                {"role": "user", "content": user_message}
+            ],
+            max_tokens=300
         )
 
-        reply = response.choices[0].message.content
-        bot.reply_to(message, reply)
+        return response.choices[0].message.content
 
     except Exception as e:
-        print("OpenAI Error:", e)
-        bot.reply_to(message, "AI error.")
+        print("OPENAI ERROR:", e)
+        return "⚠️ AI connection error."
+
+
+@bot.message_handler(func=lambda m: True)
+def handle_ai(message):
+    reply = generate_ai_response(message.text)
+    bot.reply_to(message, reply)
 
 
 # ==============================
