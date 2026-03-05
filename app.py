@@ -101,13 +101,4 @@ def handle_message(message):
 
 
 if __name__ == "__main__":
-    from threading import Thread
-    import os
-
-    bot.remove_webhook()
-
-    # Lancer le bot Telegram dans un thread séparé
-    Thread(target=bot.infinity_polling).start()
-
-    # Lancer Flask pour que Render détecte le port
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)))
+    app.run(host="0.0.0.0", port=int(os.environ.get('PORT', 10000)))
