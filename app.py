@@ -2,11 +2,21 @@ import telebot
 from telebot import types
 import os
 from openai import OpenAI
+from flask import Flask, request
+
+# ==============================
+# CONFIG
+# ==============================
 
 client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 BOT_TOKEN = os.environ.get("BOT_TOKEN")
 
 bot = telebot.TeleBot(BOT_TOKEN)
+app = Flask(__name__)
+
+# ==============================
+# TELEGRAM COMMANDS
+# ==============================
 
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
@@ -14,21 +24,16 @@ def send_welcome(message):
     btn1 = types.KeyboardButton("📚 Learn Binance Products")
     btn2 = types.KeyboardButton("🧠 Take a Crypto Quiz")
     btn3 = types.KeyboardButton("🚀 Explore Binance")
-    markup.add(btn1)
-    markup.add(btn2)
-    markup.add(btn3)
+    markup.add(btn1, btn2, btn3)
 
     bot.send_message(
         message.chat.id,
         "🚀 Welcome to OpenClaw AI\n\n"
         "Your intelligent assistant for the Binance ecosystem.\n\n"
-        "I help you:\n"
-        "• Understand Binance products\n"
-        "• Learn crypto fundamentals\n"
-        "• Explore safely\n\n"
         "Choose an option below 👇",
         reply_markup=markup
     )
+
 
 @bot.message_handler(func=lambda message: message.text == "📚 Learn Binance Products")
 def learn_products(message):
@@ -40,6 +45,7 @@ def learn_products(message):
         "🔹 Earn – Passive income products.\n"
         "🔹 Staking – Earn rewards by locking assets."
     )
+
 
 @bot.message_handler(func=lambda message: message.text == "🧠 Take a Crypto Quiz")
 def crypto_quiz(message):
@@ -53,6 +59,7 @@ def crypto_quiz(message):
         "Type A, B, or C."
     )
 
+
 @bot.message_handler(func=lambda message: message.text in ["A", "B", "C"])
 def quiz_answer(message):
     if message.text == "A":
@@ -60,27 +67,20 @@ def quiz_answer(message):
     else:
         bot.send_message(message.chat.id, "❌ Not quite. The correct answer is A.")
 
+
 @bot.message_handler(func=lambda message: message.text == "🚀 Explore Binance")
 def explore_binance(message):
     bot.send_message(
         message.chat.id,
         "🚀 Explore Binance:\n\n"
-        "Visit Binance official website to discover all products and services:\n"
+        "Visit Binance official website:\n"
         "https://www.binance.com"
     )
-from flask import Flask
-import os
 
-app = Flask(__name__)
 
-@app.route('/')
-def home():
-    return "Bot is running!"
-def explore_binance(message):
-    ...
-    
-
-# 👉 AJOUTE ICI 👇
+# ==============================
+# AI RESPONSE HANDLER
+# ==============================
 
 @bot.message_handler(func=lambda message: True)
 def handle_message(message):
@@ -88,7 +88,7 @@ def handle_message(message):
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
-                {"role": "system", "content": "You are OpenClaw AI Coach, an intelligent assistant specialized in Binance and crypto education."},
+                {"role": "system", "content": "You are OpenClaw AI Coach specialized in Binance and crypto education."},
                 {"role": "user", "content": message.text}
             ]
         )
@@ -99,6 +99,27 @@ def handle_message(message):
     except Exception as e:
         bot.reply_to(message, "⚠️ Error connecting to AI.")
 
+
+# ==============================
+# FLASK ROUTES (WEBHOOK)
+# ==============================
+
+@app.route('/')
+def home():
+    return "Bot is running!"
+
+
+@app.route('/webhook', methods=['POST'])
+def webhook():
+    json_str = request.get_data().decode('UTF-8')
+    update = telebot.types.Update.de_json(json_str)
+    bot.process_new_updates([update])
+    return '', 200
+
+
+# ==============================
+# RUN SERVER
+# ==============================
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get('PORT', 10000)))
