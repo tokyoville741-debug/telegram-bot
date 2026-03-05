@@ -23,6 +23,14 @@ bot = telebot.TeleBot(BOT_TOKEN, threaded=False)
 app = Flask(__name__)
 
 # ==============================
+# ANTI-SPAM PROTECTION
+# ==============================
+
+user_requests = {}
+MAX_REQUESTS_PER_USER = 20
+MAX_MESSAGE_LENGTH = 200
+
+# ==============================
 # TELEGRAM COMMANDS
 # ==============================
 
@@ -86,7 +94,7 @@ def generate_ai_response(user_message):
                 {"role": "system", "content": "You are a crypto education assistant."},
                 {"role": "user", "content": user_message}
             ],
-            max_tokens=300
+            max_tokens=120
         )
 
         return response.choices[0].message.content
@@ -96,8 +104,27 @@ def generate_ai_response(user_message):
         return "⚠️ AI connection error."
 
 
+# ==============================
+# AI MESSAGE HANDLER
+# ==============================
+
 @bot.message_handler(func=lambda m: True)
 def handle_ai(message):
+
+    user_id = message.from_user.id
+
+    # Limit message length
+    if len(message.text) > MAX_MESSAGE_LENGTH:
+        bot.reply_to(message, "⚠️ Message too long. Please keep it under 200 characters.")
+        return
+
+    # Limit number of requests
+    if user_id in user_requests and user_requests[user_id] >= MAX_REQUESTS_PER_USER:
+        bot.reply_to(message, "⚠️ Daily AI limit reached. Try again tomorrow.")
+        return
+
+    user_requests[user_id] = user_requests.get(user_id, 0) + 1
+
     reply = generate_ai_response(message.text)
     bot.reply_to(message, reply)
 
