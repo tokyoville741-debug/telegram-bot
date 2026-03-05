@@ -1,17 +1,22 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request
+import telebot
 from openai import OpenAI
 import os
-
-app = Flask(__name__)
 
 # ==============================
 # CONFIGURATION
 # ==============================
 
-# Mets ta clé API OpenAI ici
-OPENAI_API_KEY = "TA_CLE_API_OPENAI_ICI"
+TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
-client = OpenAI(api_key=OPENAI_API_KEY)
+bot = telebot.TeleBot(TELEGRAM_TOKEN)
+
+client = OpenAI(
+    api_key=OPENAI_API_KEY
+)
+
+app = Flask(__name__)
 
 # ==============================
 # PAGE TEST
@@ -19,21 +24,40 @@ client = OpenAI(api_key=OPENAI_API_KEY)
 
 @app.route("/", methods=["GET"])
 def home():
-    return "Bot IA actif et fonctionnel 🚀"
+    return "OpenClaw AI Coach Bot actif 🚀"
+
+# ==============================
+# WEBHOOK TELEGRAM
+# ==============================
+
+@app.route("/", methods=["POST"])
+def webhook():
+    json_string = request.stream.read().decode("utf-8")
+    update = telebot.types.Update.de_json(json_string)
+    bot.process_new_updates([update])
+    return "OK", 200
 
 
 # ==============================
-# ROUTE PRINCIPALE DU BOT
+# COMMANDE START
 # ==============================
 
-@app.route("/chat", methods=["POST"])
-def chat():
+@bot.message_handler(commands=['start'])
+def start(message):
+    bot.reply_to(
+        message,
+        "👋 Bonjour ! Je suis OpenClaw AI Coach.\n\nPose moi une question et je te répondrai avec l'IA."
+    )
 
-    data = request.json
-    user_message = data.get("message")
 
-    if not user_message:
-        return jsonify({"error": "Aucun message reçu"}), 400
+# ==============================
+# IA CHAT
+# ==============================
+
+@bot.message_handler(func=lambda message: True)
+def ai_chat(message):
+
+    user_message = message.text
 
     try:
 
@@ -54,19 +78,16 @@ def chat():
 
         reply = response.choices[0].message.content
 
-        return jsonify({
-            "reply": reply
-        })
+        bot.reply_to(message, reply)
 
     except Exception as e:
-        return jsonify({
-            "error": str(e)
-        })
+
+        bot.reply_to(message, "❌ Erreur IA : " + str(e))
 
 
 # ==============================
-# LANCEMENT DU SERVEUR
+# LANCEMENT
 # ==============================
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)))
