@@ -1,6 +1,7 @@
 from flask import Flask, request
 import requests
 import os
+from groq import Groq
 
 app = Flask(__name__)
 
@@ -8,10 +9,13 @@ app = Flask(__name__)
 # CONFIG
 # ==============================
 
-GROQ_API_KEY = "TA_CLE_GROQ"
-TELEGRAM_TOKEN = "TON_TOKEN_TELEGRAM"
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
+TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN")
+
+client = Groq(api_key=GROQ_API_KEY)
 
 TELEGRAM_API = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
+
 
 # ==============================
 # PAGE TEST
@@ -21,11 +25,12 @@ TELEGRAM_API = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
 def home():
     return "OpenClaw AI Coach Bot actif 🚀"
 
+
 # ==============================
 # WEBHOOK TELEGRAM
 # ==============================
 
-@app.route("/", methods=["POST"])
+@app.route("/webhook", methods=["POST"])
 def webhook():
 
     data = request.get_json()
@@ -36,27 +41,17 @@ def webhook():
     chat_id = data["message"]["chat"]["id"]
     user_message = data["message"].get("text", "")
 
-    if not user_message:
-        return "ok"
-
     try:
 
-        response = requests.post(
-            "https://api.groq.com/openai/v1/chat/completions",
-            headers={
-                "Authorization": f"Bearer {GROQ_API_KEY}",
-                "Content-Type": "application/json"
-            },
-            json={
-                "model": "llama-3.3-70b-versatile",
-                "messages": [
-                    {"role": "system", "content": "Tu es un assistant intelligent et utile."},
-                    {"role": "user", "content": user_message}
-                ]
-            }
+        response = client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[
+                {"role": "system", "content": "Tu es un assistant intelligent et utile."},
+                {"role": "user", "content": user_message}
+            ]
         )
 
-        reply = response.json()["choices"][0]["message"]["content"]
+        reply = response.choices[0].message.content
 
     except Exception as e:
         reply = "Erreur IA : " + str(e)
@@ -68,8 +63,7 @@ def webhook():
 
     return "ok"
 
-# ==============================
-# LANCEMENT
+
 # ==============================
 
 if __name__ == "__main__":
