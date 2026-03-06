@@ -1,27 +1,31 @@
 from flask import Flask, request
-from openai import OpenAI
 import requests
 import os
 
 app = Flask(__name__)
 
+# ==============================
 # CONFIG
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
+# ==============================
 
-client = OpenAI(api_key=OPENAI_API_KEY)
+GROQ_API_KEY = "TA_CLE_GROQ"
+TELEGRAM_TOKEN = "TON_TOKEN_TELEGRAM"
 
 TELEGRAM_API = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
 
-
+# ==============================
 # PAGE TEST
+# ==============================
+
 @app.route("/")
 def home():
     return "OpenClaw AI Coach Bot actif 🚀"
 
-
+# ==============================
 # WEBHOOK TELEGRAM
-@app.route("/webhook", methods=["POST"])
+# ==============================
+
+@app.route("/", methods=["POST"])
 def webhook():
 
     data = request.get_json()
@@ -37,16 +41,22 @@ def webhook():
 
     try:
 
-        response = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[
-                {"role": "system", "content": "Tu es un assistant intelligent et utile."},
-                {"role": "user", "content": user_message}
-            ],
-            max_tokens=500
+        response = requests.post(
+            "https://api.groq.com/openai/v1/chat/completions",
+            headers={
+                "Authorization": f"Bearer {GROQ_API_KEY}",
+                "Content-Type": "application/json"
+            },
+            json={
+                "model": "llama-3.3-70b-versatile",
+                "messages": [
+                    {"role": "system", "content": "Tu es un assistant intelligent et utile."},
+                    {"role": "user", "content": user_message}
+                ]
+            }
         )
 
-        reply = response.choices[0].message.content
+        reply = response.json()["choices"][0]["message"]["content"]
 
     except Exception as e:
         reply = "Erreur IA : " + str(e)
@@ -58,6 +68,9 @@ def webhook():
 
     return "ok"
 
+# ==============================
+# LANCEMENT
+# ==============================
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
