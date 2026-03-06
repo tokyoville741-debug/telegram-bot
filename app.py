@@ -5,32 +5,23 @@ import os
 
 app = Flask(__name__)
 
-# ==============================
 # CONFIG
-# ==============================
-
-OPENAI_API_KEY = "TA_CLE_OPENAI"
-TELEGRAM_TOKEN = "TON_TOKEN_TELEGRAM"
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 
 client = OpenAI(api_key=OPENAI_API_KEY)
 
 TELEGRAM_API = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
 
 
-# ==============================
 # PAGE TEST
-# ==============================
-
 @app.route("/")
 def home():
     return "OpenClaw AI Coach Bot actif 🚀"
 
 
-# ==============================
 # WEBHOOK TELEGRAM
-# ==============================
-
-@app.route("/", methods=["POST"])
+@app.route("/webhook", methods=["POST"])
 def webhook():
 
     data = request.get_json()
@@ -67,10 +58,6 @@ def webhook():
 
     return "ok"
 
-
-# ==============================
-# LANCEMENT
-# ==============================
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
