@@ -1,94 +1,146 @@
-from flask import Flask, request
-import requests
 import os
+import requests
+from flask import Flask, request
 
 app = Flask(__name__)
 
 TOKEN = os.environ.get("BOT_TOKEN")
+TELEGRAM_API = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
 
 def send_message(chat_id, text):
-    url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
     payload = {
         "chat_id": chat_id,
         "text": text
     }
-    requests.post(url, json=payload)
+    requests.post(TELEGRAM_API, json=payload)
 
 
-# BTC PRICE
+# -------- BTC PRICE --------
 def get_btc_price():
-    url = "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd"
-    response = requests.get(url).json()
-    price = response["bitcoin"]["usd"]
-    return price
+    try:
+        r = requests.get("https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT")
+        data = r.json()
+        return data["price"]
+    except:
+        return "Error fetching price"
 
 
-# SIMPLE SIGNAL
-def get_signal():
-    price = get_btc_price()
-
-    if price < 60000:
-        return f"BTC price ${price}\nSignal: BUY opportunity"
-    elif price < 70000:
-        return f"BTC price ${price}\nSignal: HOLD"
-    else:
-        return f"BTC price ${price}\nSignal: MARKET HOT - WAIT"
+# -------- HOME ROUTE --------
+@app.route("/", methods=["GET"])
+def home():
+    return "Bot running"
 
 
-@app.route("/", methods=["POST"])
+# -------- TELEGRAM WEBHOOK --------
+@app.route("/webhook", methods=["POST"])
 def webhook():
 
     data = request.get_json()
 
-    if "message" in data:
+    if not data or "message" not in data:
+        return "ok"
 
-        chat_id = data["message"]["chat"]["id"]
-        text = data["message"].get("text", "")
+    message = data["message"]
+    chat_id = message["chat"]["id"]
+    text = message.get("text", "")
 
-        # START
-        if text == "/start":
-            send_message(chat_id,
-            "Welcome to OpenClaw AI Coach\n\n"
-            "Commands:\n"
-            "/price - BTC price\n"
-            "/signal - BTC signal\n"
-            "/learn - crypto tips\n"
-            "/portfolio - portfolio help"
-            )
+    # START
+    if text == "/start":
+        send_message(chat_id,
+        "🚀 Welcome to OpenClaw AI Coach\n\n"
+        "Commands:\n"
+        "/learn\n"
+        "/trading\n"
+        "/risk\n"
+        "/market\n"
+        "/price\n"
+        "/signal\n"
+        "/dca\n"
+        "/portfolio\n"
+        "/binance\n"
+        "/help")
 
-        # PRICE
-        elif text == "/price":
-            price = get_btc_price()
-            send_message(chat_id, f"BTC price: ${price}")
+    # HELP
+    elif text == "/help":
+        send_message(chat_id,
+        "Bot commands:\n"
+        "/price - BTC price\n"
+        "/signal - trading signal\n"
+        "/portfolio - portfolio example\n"
+        "/learn - crypto learning\n"
+        "/trading - trading basics\n"
+        "/risk - risk management\n"
+        "/market - market insight\n"
+        "/dca - DCA strategy\n"
+        "/binance - Binance info")
 
-        # SIGNAL
-        elif text == "/signal":
-            signal = get_signal()
-            send_message(chat_id, signal)
+    # PRICE
+    elif text == "/price":
+        price = get_btc_price()
+        send_message(chat_id, f"💰 BTC Price: ${price}")
 
-        # LEARN
-        elif text == "/learn":
-            send_message(chat_id,
-            "Crypto tips:\n\n"
-            "1. Never invest money you need\n"
-            "2. Use DCA strategy\n"
-            "3. Avoid emotional trading\n"
-            "4. Long term wins\n"
-            )
+    # SIGNAL
+    elif text == "/signal":
+        send_message(chat_id,
+        "📊 BTC Signal\n\n"
+        "Trend: Bullish\n"
+        "Strategy: Buy dips / Hold")
 
-        # PORTFOLIO
-        elif text == "/portfolio":
-            send_message(chat_id,
-            "Portfolio tip:\n\n"
-            "Example allocation:\n"
-            "BTC 50%\n"
-            "ETH 30%\n"
-            "ALT 20%\n"
-            )
+    # LEARN
+    elif text == "/learn":
+        send_message(chat_id,
+        "📚 Crypto Learning\n\n"
+        "• Blockchain basics\n"
+        "• What is Bitcoin\n"
+        "• How crypto works")
+
+    # TRADING
+    elif text == "/trading":
+        send_message(chat_id,
+        "📈 Trading Basics\n\n"
+        "• Follow the trend\n"
+        "• Use stop loss\n"
+        "• Control emotions")
+
+    # RISK
+    elif text == "/risk":
+        send_message(chat_id,
+        "⚠️ Risk Management\n\n"
+        "Never risk more than 1-2% per trade.")
+
+    # MARKET
+    elif text == "/market":
+        send_message(chat_id,
+        "🌎 Market Insight\n\n"
+        "Crypto market is volatile.\n"
+        "Always manage risk.")
+
+    # DCA
+    elif text == "/dca":
+        send_message(chat_id,
+        "💰 DCA Strategy\n\n"
+        "Invest small amounts regularly.")
+
+    # PORTFOLIO
+    elif text == "/portfolio":
+        send_message(chat_id,
+        "📊 Portfolio Example\n\n"
+        "BTC 50%\n"
+        "ETH 30%\n"
+        "ALT 20%")
+
+    # BINANCE
+    elif text == "/binance":
+        send_message(chat_id,
+        "🟡 Binance\n\n"
+        "Trade crypto securely on Binance.")
+
+    else:
+        send_message(chat_id, "Unknown command")
 
     return "ok"
 
 
-@app.route("/", methods=["GET"])
-def home():
-    return "Bot is running"
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)
