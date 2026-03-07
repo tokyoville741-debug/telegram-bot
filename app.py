@@ -17,14 +17,13 @@ def send_message(chat_id, text):
     requests.post(url, json=payload)
 
 
-# BTC price
 def get_btc_price():
     try:
         url = "https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT"
-        r = requests.get(url)
+        r = requests.get(url, timeout=10)
         data = r.json()
         return data["price"]
-    except Exception:
+    except:
         return "Error"
 
 
@@ -33,22 +32,19 @@ def home():
     return "Bot running"
 
 
-@app.route("/", methods=["POST"])
+# TELEGRAM WEBHOOK
+@app.route("/webhook", methods=["POST"])
 def webhook():
 
     data = request.get_json()
 
-    if not data:
-        return "ok"
-
-    if "message" not in data:
+    if not data or "message" not in data:
         return "ok"
 
     message = data["message"]
     chat_id = message["chat"]["id"]
     text = message.get("text", "")
 
-    # START
     if text == "/start":
         send_message(
             chat_id,
@@ -66,7 +62,6 @@ def webhook():
             "/help"
         )
 
-    # HELP
     elif text == "/help":
         send_message(
             chat_id,
@@ -82,80 +77,33 @@ def webhook():
             "/binance"
         )
 
-    # PRICE
     elif text == "/price":
         price = get_btc_price()
         send_message(chat_id, f"💰 BTC Price: ${price}")
 
-    # SIGNAL
     elif text == "/signal":
-        send_message(
-            chat_id,
-            "📊 BTC Signal\n\n"
-            "Trend: Bullish\n"
-            "Strategy: Buy dips"
-        )
+        send_message(chat_id, "📊 BTC Signal\n\nTrend: Bullish\nStrategy: Buy dips")
 
-    # PORTFOLIO
     elif text == "/portfolio":
-        send_message(
-            chat_id,
-            "📊 Example Portfolio\n\n"
-            "BTC 50%\n"
-            "ETH 30%\n"
-            "ALT 20%"
-        )
+        send_message(chat_id, "📊 Example Portfolio\nBTC 50%\nETH 30%\nALT 20%")
 
-    # LEARN
     elif text == "/learn":
-        send_message(
-            chat_id,
-            "📚 Learn Crypto\n\n"
-            "• Blockchain basics\n"
-            "• What is Bitcoin\n"
-            "• Risk management"
-        )
+        send_message(chat_id, "📚 Learn Crypto\n• Blockchain\n• Bitcoin\n• Risk")
 
-    # TRADING
     elif text == "/trading":
-        send_message(
-            chat_id,
-            "📈 Trading Tips\n\n"
-            "• Follow trend\n"
-            "• Use stop loss\n"
-            "• Manage risk"
-        )
+        send_message(chat_id, "📈 Trading Tips\n• Follow trend\n• Use stop loss")
 
-    # RISK
     elif text == "/risk":
-        send_message(
-            chat_id,
-            "⚠️ Risk Management\n\n"
-            "Never risk more than 2% per trade."
-        )
+        send_message(chat_id, "⚠️ Never risk more than 2% per trade")
 
-    # MARKET
     elif text == "/market":
-        send_message(
-            chat_id,
-            "🌍 Market Insight\n\n"
-            "Crypto market is volatile."
-        )
+        send_message(chat_id, "🌍 Crypto market is volatile")
 
-    # DCA
     elif text == "/dca":
-        send_message(
-            chat_id,
-            "💰 DCA Strategy\n\n"
-            "Invest small amounts regularly."
-        )
+        send_message(chat_id, "💰 DCA = invest regularly")
 
-    # BINANCE
     elif text == "/binance":
-        send_message(
-            chat_id,
-            "🟡 Trade crypto safely on Binance."
-        )
+        send_message(chat_id, "🟡 Trade safely on Binance")
 
     else:
         send_message(chat_id, "Unknown command")
