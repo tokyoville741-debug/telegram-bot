@@ -14,17 +14,20 @@ def send_message(chat_id, text):
         "chat_id": chat_id,
         "text": text
     }
-    requests.post(url, json=payload)
+    try:
+        requests.post(url, json=payload, timeout=5)
+    except:
+        pass
 
 
 def get_btc_price():
     try:
         url = "https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT"
-        r = requests.get(url, timeout=10)
+        r = requests.get(url, timeout=5)
         data = r.json()
-        return data["price"]
+        return data.get("price", "Unavailable")
     except:
-        return "Error"
+        return "Error fetching price"
 
 
 @app.route("/", methods=["GET"])
@@ -45,7 +48,12 @@ def webhook():
     chat_id = message["chat"]["id"]
     text = message.get("text", "")
 
-    if text == "/start":
+    if not text:
+        return "ok"
+
+    text = text.split()[0]  # Fix commands like /start@botname
+
+    if text.startswith("/start"):
         send_message(
             chat_id,
             "🤖 OpenClaw AI Crypto Bot\n\n"
