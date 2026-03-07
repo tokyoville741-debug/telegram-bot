@@ -8,20 +8,76 @@ app = Flask(__name__)
 # CONFIG
 # ==============================
 
-GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
-TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN")
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 
 TELEGRAM_API = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
 
 GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
 
+
 # ==============================
-# PAGE TEST
+# AI FUNCTION
+# ==============================
+
+def ask_ai(user_message):
+
+    headers = {
+        "Authorization": f"Bearer {GROQ_API_KEY}",
+        "Content-Type": "application/json"
+    }
+
+    data = {
+        "model": "llama-3.3-70b-versatile",
+        "messages": [
+            {
+                "role": "system",
+                "content": """You are OpenClaw AI Coach.
+
+You are an AI assistant designed to help users understand cryptocurrency,
+trading, blockchain technology and the Binance ecosystem.
+
+Your mission is to educate users clearly and simply.
+
+Rules:
+- Always respond in English
+- Be concise and educational
+- Help users understand trading concepts
+- Explain Binance products when relevant
+- Never give financial advice
+- Encourage users to manage risk
+
+Topics you help with:
+Crypto education
+Trading basics
+Market psychology
+Risk management
+Binance platform tools
+"""
+            },
+            {
+                "role": "user",
+                "content": user_message
+            }
+        ],
+        "max_tokens": 400
+    }
+
+    response = requests.post(GROQ_URL, headers=headers, json=data)
+
+    result = response.json()
+
+    return result["choices"][0]["message"]["content"]
+
+
+# ==============================
+# HOME PAGE
 # ==============================
 
 @app.route("/")
 def home():
-    return "OpenClaw AI Coach Bot is running 🚀"
+    return "OpenClaw AI Coach is running 🚀"
+
 
 # ==============================
 # TELEGRAM WEBHOOK
@@ -36,127 +92,131 @@ def webhook():
         return "ok"
 
     chat_id = data["message"]["chat"]["id"]
-    user_message = data["message"].get("text", "")
+    text = data["message"].get("text", "")
 
-    if not user_message:
-        return "ok"
-
-    # ==============================
+    # ==========================
     # COMMANDS
-    # ==============================
+    # ==========================
 
-    if user_message == "/start":
+    if text == "/start":
 
-        reply = """Welcome to OpenClaw AI Coach 🚀
+        reply = """
+Welcome to OpenClaw AI Coach 🚀
 
-Your AI assistant for crypto and trading.
+Your AI assistant for learning crypto and mastering the Binance ecosystem.
 
-I can help you with:
+Available commands:
 
-• Crypto education
-• Trading basics
-• Blockchain concepts
-• Binance ecosystem
-• Market tips
+/learn - Start crypto lessons
+/binance - Learn Binance features
+/trading - Trading basics
+/risk - Risk management
+/market - Market insights
 
-Commands:
-/learn - Learn crypto basics
-/trading - Learn trading
-/tips - Trading tips
+You can also ask any crypto question.
+"""
 
-Or ask any crypto question!"""
+    elif text == "/learn":
 
-    elif user_message == "/learn":
+        reply = """
+Crypto Learning Hub 📚
 
-        reply = """Crypto Basics 📚
+1️⃣ What is Blockchain
+2️⃣ What is Bitcoin
+3️⃣ What is Crypto Trading
+4️⃣ Spot vs Futures
+5️⃣ Risk Management
 
-1. Blockchain = decentralized digital ledger
-2. Bitcoin = first cryptocurrency
-3. Altcoins = other cryptocurrencies
-4. Wallet = store your crypto safely
-5. Exchange = platform to trade crypto
+Ask me:
+Explain blockchain
+Explain Bitcoin
+Explain futures trading
+"""
 
-Example exchanges:
-• Binance
-• Coinbase
-• Kraken
+    elif text == "/binance":
 
-Crypto is transforming finance worldwide."""
+        reply = """
+Binance Ecosystem Guide 🟡
 
-    elif user_message == "/trading":
-
-        reply = """Crypto Trading Basics 📊
-
-Types of trading:
+Key Binance products:
 
 • Spot Trading
-Buy and sell crypto instantly.
+Buy and sell cryptocurrencies instantly.
 
 • Futures Trading
-Trade with leverage.
+Trade crypto with leverage.
+
+• Binance Earn
+Earn passive income with your crypto.
+
+• Binance Wallet
+Secure storage for digital assets.
+
+• Security
+2FA, anti-phishing protection and asset safety.
+"""
+
+    elif text == "/trading":
+
+        reply = """
+Trading Basics 📈
 
 Important concepts:
 
-• Support
-• Resistance
-• Stop Loss
-• Take Profit
-• Risk Management
+• Support and Resistance
+• Trend analysis
+• Moving averages
+• RSI indicator
+• Market cycles
 
-Trade smart and manage risk."""
+Always remember:
+Successful trading requires discipline and risk control.
+"""
 
-    elif user_message == "/tips":
+    elif text == "/risk":
 
-        reply = """Trading Tips 💡
+        reply = """
+Risk Management ⚠️
 
-1. Never invest more than you can afford to lose
-2. Always use stop-loss
-3. Avoid emotional trading
-4. Follow market trends
-5. Diversify your portfolio
+Golden rules of trading:
 
-Success in trading requires patience and discipline."""
+• Never risk more than you can afford to lose
+• Use stop losses
+• Avoid emotional trading
+• Manage position size
+• Diversify your portfolio
+
+Risk management is the key to long-term survival.
+"""
+
+    elif text == "/market":
+
+        reply = """
+Market Insights 🔎
+
+Crypto markets move in cycles:
+
+• Bull markets
+Prices rise and optimism grows.
+
+• Bear markets
+Prices fall and fear dominates.
+
+Smart traders focus on:
+trend, patience and risk control.
+
+You can ask:
+Is Bitcoin bullish?
+What is a bull market?
+"""
 
     else:
 
-        # ==============================
-        # AI RESPONSE (LLAMA 3)
-        # ==============================
-
-        headers = {
-            "Authorization": f"Bearer {GROQ_API_KEY}",
-            "Content-Type": "application/json"
-        }
-
-        payload = {
-            "model": "llama-3.3-70b-versatile",
-            "messages": [
-                {
-                    "role": "system",
-                    "content": "You are a crypto and trading assistant helping users understand blockchain, crypto and trading concepts."
-                },
-                {
-                    "role": "user",
-                    "content": user_message
-                }
-            ],
-            "max_tokens": 500
-        }
-
         try:
-
-            response = requests.post(GROQ_URL, headers=headers, json=payload)
-            result = response.json()
-
-            reply = result["choices"][0]["message"]["content"]
+            reply = ask_ai(text)
 
         except Exception as e:
-
-            reply = "AI error: " + str(e)
-
-    # ==============================
-    # SEND MESSAGE TO TELEGRAM
-    # ==============================
+            reply = "AI error. Please try again."
 
     requests.post(TELEGRAM_API, json={
         "chat_id": chat_id,
@@ -165,8 +225,9 @@ Success in trading requires patience and discipline."""
 
     return "ok"
 
+
 # ==============================
-# RUN SERVER
+# SERVER
 # ==============================
 
 if __name__ == "__main__":
