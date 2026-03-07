@@ -1,82 +1,96 @@
 from flask import Flask, request
 import requests
 import os
+from groq import Groq
 
 app = Flask(__name__)
 
 # ==============================
-# CONFIG
+# CONFIGURATION
 # ==============================
 
-GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+
+client = Groq(api_key=GROQ_API_KEY)
 
 TELEGRAM_API = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
 
-GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
-
-
 # ==============================
-# AI FUNCTION
-# ==============================
-
-def ask_ai(user_message):
-
-    headers = {
-        "Authorization": f"Bearer {GROQ_API_KEY}",
-        "Content-Type": "application/json"
-    }
-
-    data = {
-        "model": "llama-3.3-70b-versatile",
-        "messages": [
-            {
-                "role": "system",
-                "content": """You are OpenClaw AI Coach.
-
-You are an AI assistant designed to help users understand cryptocurrency,
-trading, blockchain technology and the Binance ecosystem.
-
-Your mission is to educate users clearly and simply.
-
-Rules:
-- Always respond in English
-- Be concise and educational
-- Help users understand trading concepts
-- Explain Binance products when relevant
-- Never give financial advice
-- Encourage users to manage risk
-
-Topics you help with:
-Crypto education
-Trading basics
-Market psychology
-Risk management
-Binance platform tools
-"""
-            },
-            {
-                "role": "user",
-                "content": user_message
-            }
-        ],
-        "max_tokens": 400
-    }
-
-    response = requests.post(GROQ_URL, headers=headers, json=data)
-
-    result = response.json()
-
-    return result["choices"][0]["message"]["content"]
-
-
-# ==============================
-# HOME PAGE
+# PAGE TEST
 # ==============================
 
 @app.route("/")
 def home():
-    return "OpenClaw AI Coach is running 🚀"
+    return "OpenClaw AI Coach Bot is running 🚀"
+
+
+# ==============================
+# CRYPTO PRICE FUNCTION
+# ==============================
+
+def get_crypto_price(symbol):
+
+    try:
+        url = f"https://api.binance.com/api/v3/ticker/price?symbol={symbol}USDT"
+        response = requests.get(url).json()
+
+        price = response["price"]
+
+        return f"{symbol} price: ${price}"
+
+    except:
+        return "Unable to fetch price."
+
+
+# ==============================
+# DCA SIMULATOR
+# ==============================
+
+def dca_simulation():
+
+    text = """
+DCA Strategy Example 📈
+
+Invest $100 every month in Bitcoin.
+
+After 12 months:
+
+Total invested: $1200
+
+Advantages:
+• Reduces volatility risk
+• No need to time the market
+• Long-term accumulation strategy
+
+This is one of the most used strategies by crypto investors.
+"""
+
+    return text
+
+
+# ==============================
+# AI ANALYSIS
+# ==============================
+
+def ai_response(message):
+
+    completion = client.chat.completions.create(
+        model="llama-3.3-70b-versatile",
+        messages=[
+            {
+                "role": "system",
+                "content": "You are a crypto AI coach helping users understand Binance ecosystem, trading, and crypto markets."
+            },
+            {
+                "role": "user",
+                "content": message
+            }
+        ],
+        max_tokens=500
+    )
+
+    return completion.choices[0].message.content
 
 
 # ==============================
@@ -92,131 +106,132 @@ def webhook():
         return "ok"
 
     chat_id = data["message"]["chat"]["id"]
-    text = data["message"].get("text", "")
+    user_message = data["message"].get("text", "")
 
-    # ==========================
+    reply = ""
+
+    # ==============================
     # COMMANDS
-    # ==========================
+    # ==============================
 
-    if text == "/start":
+    if user_message == "/start":
 
         reply = """
 Welcome to OpenClaw AI Coach 🚀
 
 Your AI assistant for learning crypto and mastering the Binance ecosystem.
 
-Available commands:
+Commands:
 
-/learn - Start crypto lessons
-/binance - Learn Binance features
+/learn - Crypto learning hub
 /trading - Trading basics
 /risk - Risk management
 /market - Market insights
+/price BTC - Check crypto price
+/signal BTC - AI trading analysis
+/dca - Investment simulator
 
 You can also ask any crypto question.
 """
 
-    elif text == "/learn":
+    elif user_message == "/learn":
 
         reply = """
 Crypto Learning Hub 📚
 
-1️⃣ What is Blockchain
-2️⃣ What is Bitcoin
-3️⃣ What is Crypto Trading
-4️⃣ Spot vs Futures
-5️⃣ Risk Management
+1 What is Blockchain
+2 What is Bitcoin
+3 What is Crypto Trading
+4 Spot vs Futures
+5 Risk Management
 
-Ask me:
+Ask:
 Explain blockchain
-Explain Bitcoin
+Explain bitcoin
 Explain futures trading
 """
 
-    elif text == "/binance":
+    elif user_message == "/trading":
 
         reply = """
-Binance Ecosystem Guide 🟡
-
-Key Binance products:
-
-• Spot Trading
-Buy and sell cryptocurrencies instantly.
-
-• Futures Trading
-Trade crypto with leverage.
-
-• Binance Earn
-Earn passive income with your crypto.
-
-• Binance Wallet
-Secure storage for digital assets.
-
-• Security
-2FA, anti-phishing protection and asset safety.
-"""
-
-    elif text == "/trading":
-
-        reply = """
-Trading Basics 📈
+Trading Basics 📊
 
 Important concepts:
 
 • Support and Resistance
-• Trend analysis
-• Moving averages
-• RSI indicator
-• Market cycles
+• Market Trends
+• Technical Indicators
+• Volume analysis
 
-Always remember:
-Successful trading requires discipline and risk control.
+Always trade with a plan and risk management.
 """
 
-    elif text == "/risk":
+    elif user_message == "/risk":
 
         reply = """
 Risk Management ⚠️
 
-Golden rules of trading:
+Golden rules:
 
-• Never risk more than you can afford to lose
-• Use stop losses
+• Never risk more than 2% per trade
+• Always use stop-loss
 • Avoid emotional trading
-• Manage position size
 • Diversify your portfolio
-
-Risk management is the key to long-term survival.
 """
 
-    elif text == "/market":
+    elif user_message == "/market":
 
         reply = """
 Market Insights 🔎
 
 Crypto markets move in cycles:
 
-• Bull markets
+Bull Market:
 Prices rise and optimism grows.
 
-• Bear markets
+Bear Market:
 Prices fall and fear dominates.
 
-Smart traders focus on:
-trend, patience and risk control.
-
-You can ask:
-Is Bitcoin bullish?
-What is a bull market?
+Smart traders focus on trend and patience.
 """
+
+    elif user_message.startswith("/price"):
+
+        try:
+            symbol = user_message.split(" ")[1].upper()
+            reply = get_crypto_price(symbol)
+        except:
+            reply = "Example: /price BTC"
+
+    elif user_message.startswith("/signal"):
+
+        try:
+            symbol = user_message.split(" ")[1].upper()
+
+            analysis_prompt = f"""
+Give a short crypto trading analysis for {symbol}.
+Include trend, momentum and risk level.
+"""
+
+            reply = ai_response(analysis_prompt)
+
+        except:
+            reply = "Example: /signal BTC"
+
+    elif user_message == "/dca":
+
+        reply = dca_simulation()
 
     else:
 
         try:
-            reply = ask_ai(text)
+            reply = ai_response(user_message)
 
         except Exception as e:
-            reply = "AI error. Please try again."
+
+            reply = "AI error: " + str(e)
+
+    # SEND MESSAGE
 
     requests.post(TELEGRAM_API, json={
         "chat_id": chat_id,
@@ -227,7 +242,7 @@ What is a bull market?
 
 
 # ==============================
-# SERVER
+# SERVER START
 # ==============================
 
 if __name__ == "__main__":
