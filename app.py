@@ -73,7 +73,6 @@ Encourage risk management.
     }
 
     response = requests.post(GROQ_URL, headers=headers, json=data, timeout=20)
-
     result = response.json()
 
     return result["choices"][0]["message"]["content"]
@@ -124,6 +123,12 @@ Commands:
 /risk
 /market
 /portfolio
+/price
+/analyze
+/news
+/strategy
+/altcoins
+/staking
 /help
 """
 
@@ -232,6 +237,10 @@ Alts 20%
 Stablecoins 10%
 """
 
+    # ==========================
+    # PRICE COMMAND
+    # ==========================
+
     elif text.startswith("/price"):
 
         coin = text.replace("/price", "").strip()
@@ -244,10 +253,14 @@ Stablecoins 10%
             r = requests.get(url)
             price = r.json()["price"]
 
-            reply = f"{coin.upper()} price: ${price}"
+            reply = f"💰 {coin.upper()} price: ${float(price):,.2f}"
 
         except:
             reply = "Unable to fetch price."
+
+    # ==========================
+    # AI ANALYSIS
+    # ==========================
 
     elif text.startswith("/analyze"):
 
