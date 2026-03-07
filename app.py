@@ -124,6 +124,26 @@ Commands:
 /risk
 /market
 /portfolio
+/help
+"""
+
+    elif text == "/help":
+
+        reply = """
+Available Commands 🤖
+
+/learn
+/binance
+/trading
+/risk
+/market
+/portfolio
+/price
+/analyze
+/news
+/strategy
+/altcoins
+/staking
 """
 
     elif text == "/learn":
@@ -210,6 +230,86 @@ BTC 40%
 ETH 30%
 Alts 20%
 Stablecoins 10%
+"""
+
+    elif text.startswith("/price"):
+
+        coin = text.replace("/price", "").strip()
+
+        if coin == "":
+            coin = "BTC"
+
+        try:
+            url = f"https://api.binance.com/api/v3/ticker/price?symbol={coin.upper()}USDT"
+            r = requests.get(url)
+            price = r.json()["price"]
+
+            reply = f"{coin.upper()} price: ${price}"
+
+        except:
+            reply = "Unable to fetch price."
+
+    elif text.startswith("/analyze"):
+
+        coin = text.replace("/analyze", "").strip()
+
+        if coin == "":
+            coin = "BTC"
+
+        reply = ask_ai(f"Give a short crypto market analysis for {coin}")
+
+    elif text == "/news":
+
+        reply = """
+Crypto News 📰
+
+Follow the latest updates in the crypto market.
+
+Sources:
+• CoinDesk
+• CoinTelegraph
+• Binance Research
+"""
+
+    elif text == "/strategy":
+
+        reply = """
+Trading Strategies 📊
+
+• Day Trading
+• Swing Trading
+• Trend Following
+• Dollar Cost Averaging
+• Long Term Investing
+"""
+
+    elif text == "/altcoins":
+
+        reply = """
+Altcoin Guide 🪙
+
+Altcoins are cryptocurrencies other than Bitcoin.
+
+Examples:
+
+• Ethereum
+• Solana
+• Cardano
+• Avalanche
+"""
+
+    elif text == "/staking":
+
+        reply = """
+Staking Guide 🔒
+
+Earn passive income by staking crypto.
+
+Popular assets:
+
+• ETH
+• ADA
+• SOL
 """
 
     else:
