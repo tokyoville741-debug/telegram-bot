@@ -9,11 +9,28 @@ app = Flask(__name__)
 # ==============================
 
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
+TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN") or os.getenv("TELEGRAM_BOT_TOKEN")
 
 TELEGRAM_API = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
-
 GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
+
+
+# ==============================
+# SEND TELEGRAM MESSAGE
+# ==============================
+
+def send_message(chat_id, text):
+    try:
+        requests.post(
+            TELEGRAM_API,
+            json={
+                "chat_id": chat_id,
+                "text": text
+            },
+            timeout=10
+        )
+    except Exception as e:
+        print("Telegram send error:", e)
 
 
 # ==============================
@@ -34,25 +51,17 @@ def ask_ai(user_message):
                 "role": "system",
                 "content": """You are OpenClaw AI Coach.
 
-You are an AI assistant designed to help users understand cryptocurrency,
-trading, blockchain technology and the Binance ecosystem.
-
-Your mission is to educate users clearly and simply.
+You help users understand:
+- cryptocurrency
+- trading
+- blockchain
+- Binance ecosystem
 
 Rules:
-- Always respond in English
-- Be concise and educational
-- Help users understand trading concepts
-- Explain Binance products when relevant
-- Never give financial advice
-- Encourage users to manage risk
-
-Topics you help with:
-Crypto education
-Trading basics
-Market psychology
-Risk management
-Binance platform tools
+Always respond in English.
+Be concise and educational.
+Never give financial advice.
+Encourage risk management.
 """
             },
             {
@@ -63,7 +72,7 @@ Binance platform tools
         "max_tokens": 400
     }
 
-    response = requests.post(GROQ_URL, headers=headers, json=data)
+    response = requests.post(GROQ_URL, headers=headers, json=data, timeout=20)
 
     result = response.json()
 
@@ -83,10 +92,12 @@ def home():
 # TELEGRAM WEBHOOK
 # ==============================
 
-@app.route("/", methods=["POST"])
+@app.route("/webhook", methods=["POST"])
 def webhook():
 
     data = request.get_json()
+
+    print(data)
 
     if "message" not in data:
         return "ok"
@@ -105,15 +116,14 @@ Welcome to OpenClaw AI Coach 🚀
 
 Your AI assistant for learning crypto and mastering the Binance ecosystem.
 
-Available commands:
+Commands:
 
-/learn - Start crypto lessons
-/binance - Learn Binance features
-/trading - Trading basics
-/risk - Risk management
-/market - Market insights
-
-You can also ask any crypto question.
+/learn
+/binance
+/trading
+/risk
+/market
+/portfolio
 """
 
     elif text == "/learn":
@@ -121,16 +131,13 @@ You can also ask any crypto question.
         reply = """
 Crypto Learning Hub 📚
 
-1️⃣ What is Blockchain
-2️⃣ What is Bitcoin
-3️⃣ What is Crypto Trading
-4️⃣ Spot vs Futures
-5️⃣ Risk Management
+Topics:
 
-Ask me:
-Explain blockchain
-Explain Bitcoin
-Explain futures trading
+• What is Blockchain
+• What is Bitcoin
+• What is Crypto Trading
+• Spot vs Futures
+• Risk Management
 """
 
     elif text == "/binance":
@@ -138,22 +145,11 @@ Explain futures trading
         reply = """
 Binance Ecosystem Guide 🟡
 
-Key Binance products:
-
 • Spot Trading
-Buy and sell cryptocurrencies instantly.
-
 • Futures Trading
-Trade crypto with leverage.
-
 • Binance Earn
-Earn passive income with your crypto.
-
 • Binance Wallet
-Secure storage for digital assets.
-
-• Security
-2FA, anti-phishing protection and asset safety.
+• Security Tools
 """
 
     elif text == "/trading":
@@ -161,16 +157,13 @@ Secure storage for digital assets.
         reply = """
 Trading Basics 📈
 
-Important concepts:
+Key concepts:
 
-• Support and Resistance
-• Trend analysis
+• Support & Resistance
+• Trends
 • Moving averages
 • RSI indicator
 • Market cycles
-
-Always remember:
-Successful trading requires discipline and risk control.
 """
 
     elif text == "/risk":
@@ -178,36 +171,45 @@ Successful trading requires discipline and risk control.
         reply = """
 Risk Management ⚠️
 
-Golden rules of trading:
+Golden rules:
 
-• Never risk more than you can afford to lose
 • Use stop losses
-• Avoid emotional trading
 • Manage position size
-• Diversify your portfolio
-
-Risk management is the key to long-term survival.
+• Control emotions
+• Diversify assets
 """
 
     elif text == "/market":
 
         reply = """
-Market Insights 🔎
+Market Cycles 🔎
 
-Crypto markets move in cycles:
+Bull market → optimism
 
-• Bull markets
-Prices rise and optimism grows.
+Bear market → fear
 
-• Bear markets
-Prices fall and fear dominates.
+Successful traders focus on:
+trend + patience + discipline
+"""
 
-Smart traders focus on:
-trend, patience and risk control.
+    elif text == "/portfolio":
 
-You can ask:
-Is Bitcoin bullish?
-What is a bull market?
+        reply = """
+Portfolio Management 💼
+
+Basic strategy:
+
+• Diversify assets
+• Allocate capital wisely
+• Avoid overexposure
+• Rebalance regularly
+
+Example:
+
+BTC 40%
+ETH 30%
+Alts 20%
+Stablecoins 10%
 """
 
     else:
@@ -216,12 +218,10 @@ What is a bull market?
             reply = ask_ai(text)
 
         except Exception as e:
+            print("AI error:", e)
             reply = "AI error. Please try again."
 
-    requests.post(TELEGRAM_API, json={
-        "chat_id": chat_id,
-        "text": reply
-    })
+    send_message(chat_id, reply)
 
     return "ok"
 
@@ -231,4 +231,7 @@ What is a bull market?
 # ==============================
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=10000)
+
+    port = int(os.environ.get("PORT", 10000))
+
+    app.run(host="0.0.0.0", port=port)
