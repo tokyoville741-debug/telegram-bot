@@ -5,15 +5,15 @@ import os
 app = Flask(__name__)
 
 TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
-TELEGRAM_API = f"https://api.telegram.org/bot{TOKEN}"
+API_URL = f"https://api.telegram.org/bot{TOKEN}"
 
 def send_message(chat_id, text):
-    url = f"{TELEGRAM_API}/sendMessage"
-    payload = {
+    url = f"{API_URL}/sendMessage"
+    data = {
         "chat_id": chat_id,
         "text": text
     }
-    requests.post(url, json=payload)
+    requests.post(url, json=data)
 
 @app.route("/")
 def home():
@@ -21,11 +21,11 @@ def home():
 
 @app.route("/webhook", methods=["POST"])
 def webhook():
-    data = request.get_json()
+    update = request.get_json()
 
-    if data and "message" in data:
-        chat_id = data["message"]["chat"]["id"]
-        text = data["message"].get("text", "")
+    if "message" in update:
+        chat_id = update["message"]["chat"]["id"]
+        text = update["message"].get("text", "")
 
         if text == "/start":
             send_message(chat_id, "Bot actif ✅")
