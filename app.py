@@ -111,25 +111,31 @@ def webhook():
     if text == "/start":
 
         reply = """
-Welcome to OpenClaw AI Coach 🚀
+🤖 Welcome to OpenClaw AI Coach 🚀
 
 Your AI assistant for learning crypto and mastering the Binance ecosystem.
 
-Commands:
+📚 Learning
+/learn - Crypto basics
+/trading - Trading strategies
+/risk - Risk management
 
-/learn
-/binance
-/trading
-/risk
-/market
-/portfolio
-/price
-/analyze
-/news
-/strategy
-/altcoins
-/staking
-/help
+📊 Market
+/market - Market cycles
+/price - Crypto prices
+/analyze - AI market analysis
+
+💰 Opportunities
+/altcoins - Altcoin research
+/staking - Passive income
+/portfolio - Portfolio tips
+
+📰 Updates
+/news - Latest crypto news
+/strategy - Trading strategies
+
+━━━━━━━━━━━━━━
+Type /help for the full guide.
 """
 
     elif text == "/help":
@@ -137,18 +143,27 @@ Commands:
         reply = """
 Available Commands 🤖
 
-/learn
-/binance
-/trading
-/risk
-/market
-/portfolio
-/price
-/analyze
-/news
-/strategy
-/altcoins
-/staking
+📚 Learning
+/learn - Crypto basics
+/trading - Trading strategies
+/risk - Risk management
+
+📊 Market
+/market - Market cycles
+/price - Crypto prices
+/analyze - AI analysis
+
+💰 Opportunities
+/altcoins - Altcoin research
+/staking - Passive income
+/portfolio - Portfolio management
+
+📰 Updates
+/news - Latest crypto news
+/strategy - Trading strategies
+
+⚙️ Platform
+/binance - Binance ecosystem guide
 """
 
     elif text == "/learn":
