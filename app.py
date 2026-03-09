@@ -1,65 +1,111 @@
 import os
 import requests
-from flask import Flask, request
+from flask import Flask, request, jsonify
 
 app = Flask(__name__)
 
-TOKEN = os.getenv("BOT_TOKEN")
-TELEGRAM_URL = f"https://api.telegram.org/bot{TOKEN}"
+BOT_TOKEN = os.environ.get("BOT_TOKEN")
+TELEGRAM_API = f"https://api.telegram.org/bot{BOT_TOKEN}"
 
 user_state = {}
 
-main_menu = [
-["📚 Learn","📈 Trading"],
-["⚠️ Risk","📊 Market"],
-["💰 Price","🧠 AI Analysis"],
-["🌕 Altcoins","🔒 Staking"],
-["💼 Portfolio","📰 News"]
-]
+# ---------- SEND MESSAGE ----------
 
-def send_message(chat_id,text,keyboard=None):
+def send_message(chat_id, text, keyboard=None):
 
-    data = {
-    "chat_id":chat_id,
-    "text":text,
-    "parse_mode":"Markdown"
+    url = f"{TELEGRAM_API}/sendMessage"
+
+    payload = {
+        "chat_id": chat_id,
+        "text": text,
+        "parse_mode": "Markdown"
     }
 
     if keyboard:
-        data["reply_markup"]={
-        "keyboard":keyboard,
-        "resize_keyboard":True
+        payload["reply_markup"] = {
+            "keyboard": keyboard,
+            "resize_keyboard": True
         }
 
-    requests.post(f"{TELEGRAM_URL}/sendMessage",json=data)
+    try:
+        requests.post(url, json=payload, timeout=10)
+    except:
+        pass
 
+
+# ---------- MAIN MENU ----------
+
+main_menu = [
+["1","2","3"],
+["4","5","6"],
+["7","8","9"],
+["10"]
+]
+
+back_button = [["⬅ Back"]]
+
+
+# ---------- CRYPTO PRICE ----------
+
+def get_crypto_prices():
+
+    try:
+
+        url = "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana&vs_currencies=usd"
+
+        data = requests.get(url).json()
+
+        btc = data["bitcoin"]["usd"]
+        eth = data["ethereum"]["usd"]
+        sol = data["solana"]["usd"]
+
+        return f"""
+💰 *Live Crypto Prices*
+
+BTC : ${btc}
+ETH : ${eth}
+SOL : ${sol}
+"""
+
+    except:
+        return "Unable to fetch prices."
+
+
+# ---------- HOME ----------
 
 @app.route("/")
 def home():
-    return "Bot running"
+    return "OpenClaw Bot Running"
 
 
-@app.route("/webhook",methods=["POST"])
+# ---------- WEBHOOK ----------
+
+@app.route("/webhook", methods=["POST"])
 def webhook():
 
-    data=request.json
+    data = request.get_json()
 
-    if "message" not in data:
-        return "ok"
+    if not data:
+        return jsonify({"status":"ok"}),200
 
-    chat_id=data["message"]["chat"]["id"]
-    text=data["message"].get("text","")
+    message = data.get("message")
 
-    state=user_state.get(chat_id,"main")
+    if not message:
+        return jsonify({"status":"ok"}),200
+
+    chat_id = message["chat"]["id"]
+    text = message.get("text","")
+
+    state = user_state.get(chat_id,"main")
 
 
-# START
+# ---------- START ----------
 
     if text in ["/start","menu","Menu"]:
 
-        user_state[chat_id]="main"
+        user_state[chat_id] = "main"
 
-        reply="""
+        reply = """
 🤖 OpenClaw AI Coach
 
 1️⃣ Learn
@@ -74,188 +120,191 @@ def webhook():
 🔟 News
 """
 
-        send_message(chat_id,reply,main_menu)
+        send_message(chat_id, reply, main_menu)
 
 
-# LEARN MENU
+# ---------- LEARN ----------
 
-    elif text in ["1","📚 Learn"] and state=="main":
+    elif text == "1":
 
-        user_state[chat_id]="learn"
+        reply = """
+📚 *Crypto Learning Hub*
 
-        reply="""
-📚 Crypto Learning Hub
+Learn the fundamentals of crypto:
 
-1️⃣ What is Blockchain
-2️⃣ What is Bitcoin
-3️⃣ What is Crypto Trading
-4️⃣ Spot vs Futures
-5️⃣ Risk Management
+• What is blockchain
+• Bitcoin basics
+• Trading psychology
+• Market cycles
 """
 
-        send_message(chat_id,reply,[["🔙 Back"]])
+        send_message(chat_id, reply, back_button)
 
 
-# LEARN CONTENT
+# ---------- TRADING ----------
 
-    elif text=="1" and state=="learn":
+    elif text == "2":
 
-        reply="""
-🔗 Blockchain
+        reply = """
+📈 *Trading Strategies*
 
-Blockchain is a decentralized ledger
-that records transactions across many computers.
+Popular trading styles:
 
-Features
-• transparency
-• security
-• decentralization
+• Scalping
+• Day trading
+• Swing trading
+• Trend trading
 """
 
-        send_message(chat_id,reply,[["🔙 Back"]])
+        send_message(chat_id, reply, back_button)
 
 
-    elif text=="2" and state=="learn":
+# ---------- RISK ----------
 
-        reply="""
-₿ Bitcoin
+    elif text == "3":
 
-Bitcoin is the first cryptocurrency
-created in 2009 by Satoshi Nakamoto.
+        reply = """
+⚠ *Risk Management*
 
-Purpose
-• decentralized payments
-• peer to peer money
+Golden rules:
+
+• Never risk more than 2%
+• Always use stop loss
+• Protect your capital
 """
 
-        send_message(chat_id,reply,[["🔙 Back"]])
+        send_message(chat_id, reply, back_button)
 
 
-# TRADING MENU
+# ---------- MARKET ----------
 
-    elif text in ["2","📈 Trading"] and state=="main":
+    elif text == "4":
 
-        user_state[chat_id]="trading"
+        reply = """
+🌍 *Market Analysis*
 
-        reply="""
-📈 Trading Basics
+Understand:
 
-1️⃣ Support & Resistance
-2️⃣ Market Trends
-3️⃣ Moving Averages
-4️⃣ RSI Indicator
-5️⃣ Market Cycles
+• Bull markets
+• Bear markets
+• Market sentiment
 """
 
-        send_message(chat_id,reply,[["🔙 Back"]])
+        send_message(chat_id, reply, back_button)
 
 
-# TRADING CONTENT
+# ---------- PRICE ----------
 
-    elif text=="1" and state=="trading":
+    elif text == "5":
 
-        reply="""
-📊 Support & Resistance
+        reply = get_crypto_prices()
 
-Support = price where buyers enter
+        send_message(chat_id, reply, back_button)
 
-Resistance = price where sellers appear
 
-Used for trade entries and exits.
+# ---------- AI ANALYSIS ----------
+
+    elif text == "6":
+
+        reply = """
+🤖 *AI Market Insight*
+
+AI analyzes:
+
+• trend strength
+• volatility
+• market sentiment
 """
 
-        send_message(chat_id,reply,[["🔙 Back"]])
+        send_message(chat_id, reply, back_button)
 
 
-# RISK MENU
+# ---------- ALTCOINS ----------
 
-    elif text in ["3","⚠️ Risk"] and state=="main":
+    elif text == "7":
 
-        user_state[chat_id]="risk"
+        reply = """
+🪙 *Altcoins*
 
-        reply="""
-⚠️ Risk Management
-
-1️⃣ Position Size
-2️⃣ Stop Loss
-3️⃣ Diversification
-4️⃣ Emotional Control
-5️⃣ Risk Reward
+Explore alternative cryptocurrencies beyond Bitcoin.
 """
 
-        send_message(chat_id,reply,[["🔙 Back"]])
+        send_message(chat_id, reply, back_button)
 
 
-# MARKET MENU
+# ---------- STAKING ----------
 
-    elif text in ["4","📊 Market"] and state=="main":
+    elif text == "8":
 
-        user_state[chat_id]="market"
+        reply = """
+🏦 *Staking*
 
-        reply="""
-📊 Market Concepts
-
-1️⃣ Bull Market
-2️⃣ Bear Market
-3️⃣ Liquidity
-4️⃣ Volatility
-5️⃣ Market Cycles
+Earn passive income by staking crypto assets.
 """
 
-        send_message(chat_id,reply,[["🔙 Back"]])
+        send_message(chat_id, reply, back_button)
 
 
-# PRICE
+# ---------- PORTFOLIO ----------
 
-    elif text in ["5","💰 Price"]:
+    elif text == "9":
 
-        url="https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana&vs_currencies=usd"
+        reply = """
+📊 *Portfolio Management*
 
-        r=requests.get(url).json()
-
-        btc=r["bitcoin"]["usd"]
-        eth=r["ethereum"]["usd"]
-        sol=r["solana"]["usd"]
-
-        reply=f"""
-💰 Live Crypto Prices
-
-BTC : ${btc}
-ETH : ${eth}
-SOL : ${sol}
+Build a balanced crypto portfolio.
 """
 
-        send_message(chat_id,reply,[["🔙 Back"]])
+        send_message(chat_id, reply, back_button)
 
 
-# BACK BUTTON
+# ---------- NEWS ----------
 
-    elif text=="🔙 Back":
+    elif text == "10":
 
-        user_state[chat_id]="main"
+        reply = """
+📰 *Crypto News*
 
-        send_message(chat_id,"Main Menu",main_menu)
-
-
-# DEFAULT
-
-    else:
-
-        reply="""
-🧠 Ask me about crypto
-
-Examples
-• What is Bitcoin
-• How to trade
-• Crypto market
+Stay updated with the latest crypto developments.
 """
 
-        send_message(chat_id,reply,main_menu)
+        send_message(chat_id, reply, back_button)
 
 
-    return "ok"
+# ---------- BACK ----------
+
+    elif text == "⬅ Back":
+
+        user_state[chat_id] = "main"
+
+        reply = """
+🤖 OpenClaw AI Coach
+
+1️⃣ Learn
+2️⃣ Trading
+3️⃣ Risk
+4️⃣ Market
+5️⃣ Price
+6️⃣ AI Analysis
+7️⃣ Altcoins
+8️⃣ Staking
+9️⃣ Portfolio
+🔟 News
+"""
+
+        send_message(chat_id, reply, main_menu)
 
 
-if __name__=="__main__":
-    port=int(os.environ.get("PORT",10000))
-    app.run(host="0.0.0.0",port=port)
+    return jsonify({"status":"ok"}),200
+
+
+# ---------- RUN ----------
+
+if __name__ == "__main__":
+
+    port = int(os.environ.get("PORT",10000))
+
+    app.run(
+        host="0.0.0.0",
+        port=port
+        )
