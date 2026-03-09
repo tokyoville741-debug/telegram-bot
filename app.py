@@ -51,34 +51,51 @@ def send(chat_id,text,keyboard=None):
     if keyboard:
         data["reply_markup"]=keyboard
 
-    requests.post(URL+"sendMessage",json=data)
+    try:
+        requests.post(URL+"sendMessage",json=data)
+    except:
+        pass
 
 
 def price(coin):
 
-    r = requests.get(
-        f"https://api.coingecko.com/api/v3/simple/price?ids={coin}&vs_currencies=usd"
-    )
+    try:
+        r = requests.get(
+            f"https://api.coingecko.com/api/v3/simple/price?ids={coin}&vs_currencies=usd"
+        )
 
-    data = r.json()
+        data = r.json()
 
-    return data[coin]["usd"]
+        return data.get(coin,{}).get("usd","Unavailable")
+
+    except:
+        return "Unavailable"
 
 
 def crypto_news():
 
-    r = requests.get(
-        "https://min-api.cryptocompare.com/data/v2/news/?lang=EN"
-    )
+    try:
 
-    news = r.json()["Data"][:5]
+        r = requests.get(
+            "https://min-api.cryptocompare.com/data/v2/news/?lang=EN"
+        )
 
-    text = "📰 Latest Crypto News\n\n"
+        news = r.json().get("Data",[])[:5]
 
-    for n in news:
-        text += f"{n['title']}\n{n['url']}\n\n"
+        text = "📰 Latest Crypto News\n\n"
 
-    return text
+        for n in news:
+
+            title = n.get("title","")
+            url = n.get("url","")
+
+            text += f"{title}\n{url}\n\n"
+
+        return text
+
+    except:
+
+        return "News unavailable right now."
 
 
 def ai_answer(q):
@@ -131,9 +148,11 @@ It allows developers to build:
 
 def updates(offset):
 
-    r = requests.get(URL+"getUpdates",params={"offset":offset})
-
-    return r.json()
+    try:
+        r = requests.get(URL+"getUpdates",params={"offset":offset})
+        return r.json()
+    except:
+        return {}
 
 
 offset = 0
@@ -142,7 +161,11 @@ while True:
 
     data = updates(offset)
 
-    for u in data["result"]:
+    if "result" not in data:
+        time.sleep(1)
+        continue
+
+    for u in data.get("result",[]):
 
         offset = u["update_id"]+1
 
@@ -155,7 +178,6 @@ while True:
             continue
 
         chat = msg["chat"]["id"]
-
         text = msg["text"].strip()
 
 
