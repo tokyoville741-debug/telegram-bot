@@ -1,92 +1,71 @@
 import os
-from flask import Flask, request
-import asyncio
 import requests
-import pandas as pd
-from telegram import Update
-from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
-
-TOKEN = os.getenv("BOT_TOKEN")
+from flask import Flask, request, jsonify
 
 app = Flask(__name__)
 
-# ================= BINANCE DATA =================
+BOT_TOKEN = os.environ.get("BOT_TOKEN")
+if not BOT_TOKEN:
+    raise ValueError("BOT_TOKEN environment variable not set")
 
-def get_klines(symbol="BTCUSDT", interval="15m", limit=100):
-    url = f"https://api.binance.com/api/v3/klines?symbol={symbol}&interval={interval}&limit={limit}"
-    data = requests.get(url).json()
+TELEGRAM_API = f"https://api.telegram.org/bot{BOT_TOKEN}"
 
-    df = pd.DataFrame(data, columns=[
-        "time","open","high","low","close","volume",
-        "close_time","qav","num_trades","taker_base_vol",
-        "taker_quote_vol","ignore"
-    ])
+user_state = {}
 
-    df["close"] = df["close"].astype(float)
-    df["high"] = df["high"].astype(float)
-    df["low"] = df["low"].astype(float)
+def send_message(chat_id, text, keyboard=None):
+    url = f"{TELEGRAM_API}/sendMessage"
 
-    return df
+    payload = {
+        "chat_id": chat_id,
+        "text": text,
+        "parse_mode": "HTML"
+    }
 
-# ================= INDICATORS =================
+    if keyboard:
+        payload["reply_markup"] = {
+            "keyboard": keyboard,
+            "resize_keyboard": True
+        }
 
-def ema(series, period):
-    return series.ewm(span=period, adjust=False).mean()
+    try:
+        requests.post(url, json=payload, timeout=10)
+    except Exception as e:
+        print("Telegram send error:", e)
 
-def rsi(series, period=14):
-    delta = series.diff()
-    gain = (delta.where(delta > 0, 0)).rolling(window=period).mean()
-    loss = (-delta.where(delta < 0, 0)).rolling(window=period).mean()
-    rs = gain / loss
-    return 100 - (100 / (1 + rs))
+main_menu = [
+    ["1", "2", "3"],
+    ["4", "5", "6"],
+    ["7", "8", "9"],
+    ["10"]
+]
 
-# ================= SIGNAL =================
+back_button = [["⬅ Back"]]
 
-def generate_signal(symbol):
+def get_crypto_prices():
+    try:
+        url = "https://api.coingecko.com/api/v3/simple/price"
 
-    df = get_klines(symbol)
+        params = {
+            "ids": "bitcoin,ethereum,solana",
+            "vs_currencies": "usd"
+        }
 
-    df["ema9"] = ema(df["close"], 9)
-    df["ema21"] = ema(df["close"], 21)
-    df["rsi"] = rsi(df["close"])
+        r = requests.get(url, params=params, timeout=10)
+        data = r.json()
 
-    last = df.iloc[-1]
+        btc = data["bitcoin"]["usd"]
+        eth = data["ethereum"]["usd"]
+        sol = data["solana"]["usd"]
 
-    if last["ema9"] > last["ema21"] and last["rsi"] < 70:
-        return f"{symbol} BUY signal"
-    elif last["ema9"] < last["ema21"] and last["rsi"] > 30:
-        return f"{symbol} SELL signal"
-    else:
-        return f"{symbol} NO SIGNAL"
+        return f"""
+BTC : ${btc}
+ETH : ${eth}
+SOL : ${sol}
+"""
 
-# ================= TELEGRAM =================
-
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("Bot is running")
-
-async def signal(update: Update, context: ContextTypes.DEFAULT_TYPE):
-
-    symbol = "BTCUSDT"
-
-    if context.args:
-        symbol = context.args[0].upper()
-
-    result = generate_signal(symbol)
-
-    await update.message.reply_text(result)
-
-# ================= BOT LOOP =================
-
-def run_bot():
-
-    application = ApplicationBuilder().token(TOKEN).build()
-
-    application.add_handler(CommandHandler("start", start))
-    application.add_handler(CommandHandler("signal", signal))
-
-    application.run_polling()
-
-# ================= WEB SERVER =================
+    except Exception as e:
+        print("Price API error:", e)
+        return "⚠ Unable to fetch prices."
 
 @app.route("/")
 def home():
@@ -94,16 +73,116 @@ def home():
 
 @app.route("/webhook", methods=["POST"])
 def webhook():
-    return "ok"
 
-# ================= MAIN =================
+    data = request.get_json()
+
+    if not data:
+        return jsonify({"status": "ok"}), 200
+
+    message = data.get("message")
+
+    if not message:
+        return jsonify({"status": "ok"}), 200
+
+    chat_id = message["chat"]["id"]
+    text = message.get("text", "")
+
+    state = user_state.get(chat_id, "main")
+
+    if not text:
+        return jsonify({"status": "ok"}), 200
+
+    if text in ["/start", "menu", "Menu"]:
+
+        user_state[chat_id] = "main"
+
+        reply = """
+Welcome to the Crypto Learning Bot
+
+Choose a section
+"""
+
+        send_message(chat_id, reply, main_menu)
+
+    elif text == "1":
+
+        reply = """
+Learn the fundamentals of crypto:
+• What is blockchain
+• Bitcoin basics
+• Trading psychology
+• Market cycles
+"""
+
+        send_message(chat_id, reply, back_button)
+
+    elif text == "2":
+
+        reply = """
+Popular trading styles:
+• Scalping
+• Day trading
+• Swing trading
+• Trend trading
+"""
+
+        send_message(chat_id, reply, back_button)
+
+    elif text == "3":
+
+        reply = """
+Golden rules:
+• Never risk more than 2%
+• Always use stop loss
+• Protect your capital
+"""
+
+        send_message(chat_id, reply, back_button)
+
+    elif text == "4":
+
+        reply = """
+Understand:
+• Bull markets
+• Bear markets
+• Market sentiment
+"""
+
+        send_message(chat_id, reply, back_button)
+
+    elif text == "5":
+
+        prices = get_crypto_prices()
+        send_message(chat_id, prices, back_button)
+
+    elif text == "6":
+
+        reply = """
+AI analyzes:
+• trend strength
+• volatility
+• market sentiment
+"""
+
+        send_message(chat_id, reply, back_button)
+
+    elif text == "⬅ Back":
+
+        user_state[chat_id] = "main"
+        send_message(chat_id, "Main menu", main_menu)
+
+    else:
+        send_message(chat_id, "Choose a valid option", main_menu)
+
+    return jsonify({"status": "ok"}), 200
+
 
 if __name__ == "__main__":
 
-    from threading import Thread
-
-    bot_thread = Thread(target=run_bot)
-    bot_thread.start()
-
     port = int(os.environ.get("PORT", 10000))
-    app.run(host="0.0.0.0", port=port)
+
+    app.run(
+        host="0.0.0.0",
+        port=port,
+        debug=False
+    )
