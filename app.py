@@ -4,8 +4,11 @@ import threading
 import os
 from flask import Flask
 
-TOKEN = "TON_TOKEN_ICI"
+TOKEN = "TON_TOKEN_TELEGRAM"
+LLAMA_API_KEY = "TA_CLE_LLAMA"
+
 URL = f"https://api.telegram.org/bot{TOKEN}/"
+LLAMA_URL = "https://api.llama-api.com/chat/completions"
 
 app = Flask(__name__)
 
@@ -52,6 +55,8 @@ back_menu = {
 }
 
 
+# TELEGRAM SEND
+
 def send(chat_id,text,keyboard=None):
 
     data = {
@@ -68,9 +73,12 @@ def send(chat_id,text,keyboard=None):
         pass
 
 
+# COIN PRICE
+
 def price(coin):
 
     try:
+
         r = requests.get(
             f"https://api.coingecko.com/api/v3/simple/price?ids={coin}&vs_currencies=usd",
             timeout=10
@@ -81,8 +89,11 @@ def price(coin):
         return data.get(coin,{}).get("usd","Unavailable")
 
     except:
+
         return "Unavailable"
 
+
+# CRYPTO NEWS
 
 def crypto_news():
 
@@ -99,60 +110,54 @@ def crypto_news():
 
         for n in news:
 
-            title = n.get("title","")
-            url = n.get("url","")
-
-            text += f"{title}\n{url}\n\n"
+            text += f"{n['title']}\n{n['url']}\n\n"
 
         return text
 
     except:
 
-        return "News unavailable right now."
+        return "News unavailable."
 
 
-def ai_answer(q):
+# LLAMA AI
 
-    q=q.lower()
+def llama_ai(question):
 
-    if "blockchain" in q:
+    headers = {
+        "Authorization": f"Bearer {LLAMA_API_KEY}",
+        "Content-Type": "application/json"
+    }
 
-        return """🔗 Blockchain
+    data = {
+        "model": "meta-llama-3.3-70b-instruct",
+        "messages": [
+            {"role":"system","content":"You are a crypto trading assistant."},
+            {"role":"user","content":question}
+        ]
+    }
 
-Blockchain is a decentralized digital ledger that records transactions across many computers.
+    try:
 
-Each block contains:
-• transaction data
-• timestamp
-• cryptographic hash
+        r = requests.post(
+            LLAMA_URL,
+            headers=headers,
+            json=data,
+            timeout=30
+        )
 
-Once recorded the data cannot be changed."""
+        return r.json()["choices"][0]["message"]["content"]
 
-    elif "bitcoin" in q:
+    except:
 
-        return """₿ Bitcoin
+        return "AI unavailable right now."
 
-Bitcoin is the first decentralized cryptocurrency created in 2009.
 
-Key features:
-• limited supply (21 million)
-• decentralized network
-• secure blockchain"""
-
-    elif "ethereum" in q:
-
-        return """Ξ Ethereum
-
-Ethereum is a decentralized blockchain supporting smart contracts and decentralized applications."""
-
-    else:
-
-        return "Ask me anything about crypto, trading or blockchain."
-
+# TELEGRAM UPDATES
 
 def updates(offset):
 
     try:
+
         r = requests.get(
             URL+"getUpdates",
             params={"offset":offset,"timeout":30},
@@ -162,8 +167,11 @@ def updates(offset):
         return r.json()
 
     except:
+
         return {}
 
+
+# BOT LOOP
 
 def bot():
 
@@ -204,22 +212,30 @@ def bot():
 
             elif "Learn" in text:
 
-                send(chat,"📚 Crypto Education\nCryptocurrency is digital money powered by blockchain.",back_menu)
+                send(chat,
+                "📚 Crypto Education\nCryptocurrency is digital money powered by blockchain.",
+                back_menu)
 
 
             elif "Trading" in text:
 
-                send(chat,"📈 Trading\nBuy and sell crypto to profit from price movements.",back_menu)
+                send(chat,
+                "📈 Trading\nBuy and sell crypto to profit from price movements.",
+                back_menu)
 
 
             elif "Risk" in text:
 
-                send(chat,"⚠ Risk Management\nNever risk more than 2% per trade.",back_menu)
+                send(chat,
+                "⚠ Risk Management\nNever risk more than 2% per trade.",
+                back_menu)
 
 
             elif "Market" in text:
 
-                send(chat,"📊 Market Cycles\nAccumulation → Uptrend → Distribution → Downtrend",back_menu)
+                send(chat,
+                "📊 Market Cycles\nAccumulation → Uptrend → Distribution → Downtrend",
+                back_menu)
 
 
             elif "Price" in text:
@@ -227,19 +243,22 @@ def bot():
                 send(chat,"Choose a cryptocurrency:",price_menu)
 
 
-            elif text=="BTC":
+            elif text == "BTC":
 
                 send(chat,f"₿ Bitcoin price: ${price('bitcoin')}")
 
-            elif text=="ETH":
+
+            elif text == "ETH":
 
                 send(chat,f"Ξ Ethereum price: ${price('ethereum')}")
 
-            elif text=="SOL":
+
+            elif text == "SOL":
 
                 send(chat,f"◎ Solana price: ${price('solana')}")
 
-            elif text=="BNB":
+
+            elif text == "BNB":
 
                 send(chat,f"BNB price: ${price('binancecoin')}")
 
@@ -253,13 +272,16 @@ def bot():
 
                 send(chat,"https://www.tradingview.com/chart/?symbol=BINANCE:BTCUSDT")
 
+
             elif "ETH Chart" in text:
 
                 send(chat,"https://www.tradingview.com/chart/?symbol=BINANCE:ETHUSDT")
 
+
             elif "SOL Chart" in text:
 
                 send(chat,"https://www.tradingview.com/chart/?symbol=BINANCE:SOLUSDT")
+
 
             elif "BNB Chart" in text:
 
@@ -298,15 +320,19 @@ def bot():
 
             else:
 
-                send(chat,ai_answer(text))
+                reply = llama_ai(text)
+
+                send(chat,reply)
 
         time.sleep(1)
 
 
+# START
+
 if __name__ == "__main__":
 
-    threading.Thread(target=bot).start()
+    threading.Thread(target=bot,daemon=True).start()
 
     port = int(os.environ.get("PORT",10000))
 
-    app.run(host="0.0.0.0", port=port)
+    app.run(host="0.0.0.0",port=port)
