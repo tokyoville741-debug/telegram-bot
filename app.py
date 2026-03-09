@@ -326,6 +326,15 @@ def run_bot():
 
 # START BOT
 
+import threading
+
 if __name__ == "__main__":
 
-    run_bot()
+    print("Starting Crypto AI Bot...")
+
+    bot_thread = threading.Thread(target=run_bot)
+    bot_thread.start()
+
+    port = int(os.environ.get("PORT", 10000))
+
+    app.run(host="0.0.0.0", port=port)
