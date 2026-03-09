@@ -30,7 +30,7 @@ def send_message(chat_id, text, keyboard=None):
 
 def send_photo(chat_id, url, caption=None, keyboard=None):
 
-    api = f"{TELEGRAM_API}/sendPhoto"
+    url_api = f"{TELEGRAM_API}/sendPhoto"
 
     payload = {
         "chat_id": chat_id,
@@ -44,17 +44,19 @@ def send_photo(chat_id, url, caption=None, keyboard=None):
             "resize_keyboard": True
         }
 
-    requests.post(api, json=payload)
+    requests.post(url_api, json=payload)
 
-# ---------------- MENUS ----------------
+# ---------------- MAIN MENU ----------------
 
 main_menu = [
     ["📚 Learn", "📈 Trading"],
     ["⚠ Risk", "📊 Market"],
-    ["💰 Price", "🧠 AI Analysis"],
+    ["💰 Price", "🧠 AI Assistant"],
     ["🌕 Altcoins", "🔒 Staking"],
     ["💼 Portfolio", "📰 News"]
 ]
+
+# ---------------- SUB MENUS ----------------
 
 learn_menu = [
     ["What is Blockchain"],
@@ -64,19 +66,67 @@ learn_menu = [
     ["⬅ Back"]
 ]
 
-price_menu = [
-    ["BTC Price", "📈 BTC Chart"],
-    ["ETH Price", "📈 ETH Chart"],
-    ["SOL Price", "📈 SOL Chart"],
+trading_menu = [
+    ["Day Trading"],
+    ["Swing Trading"],
+    ["Long Term Investing"],
     ["⬅ Back"]
 ]
 
-# ---------------- PRICE FUNCTION ----------------
+risk_menu = [
+    ["Stop Loss"],
+    ["Position Size"],
+    ["Risk Reward"],
+    ["⬅ Back"]
+]
+
+market_menu = [
+    ["Market Cap"],
+    ["BTC Dominance"],
+    ["Trading Volume"],
+    ["⬅ Back"]
+]
+
+price_menu = [
+    ["BTC Price", "ETH Price"],
+    ["SOL Price", "Top 5 Prices"],
+    ["⬅ Back"]
+]
+
+ai_menu = [
+    ["Market Prediction"],
+    ["Ask AI"],
+    ["⬅ Back"]
+]
+
+altcoin_menu = [
+    ["Top Altcoins"],
+    ["Altcoin Season"],
+    ["⬅ Back"]
+]
+
+staking_menu = [
+    ["What is Staking"],
+    ["Best Staking Coins"],
+    ["⬅ Back"]
+]
+
+portfolio_menu = [
+    ["Portfolio Strategy"],
+    ["Portfolio Example"],
+    ["⬅ Back"]
+]
+
+news_menu = [
+    ["Latest News"],
+    ["⬅ Back"]
+]
+
+# ---------------- API FUNCTIONS ----------------
 
 def get_price(coin):
 
     try:
-
         url = "https://api.coingecko.com/api/v3/simple/price"
 
         params = {
@@ -92,7 +142,34 @@ def get_price(coin):
     except:
         return "Unavailable"
 
-# ---------------- NEWS ----------------
+
+def get_top_prices():
+
+    try:
+
+        url = "https://api.coingecko.com/api/v3/coins/markets"
+
+        params = {
+            "vs_currency": "usd",
+            "order": "market_cap_desc",
+            "per_page": 5,
+            "page": 1
+        }
+
+        r = requests.get(url, params=params)
+        data = r.json()
+
+        text = "💰 <b>Top 5 Crypto Prices</b>\n\n"
+
+        for coin in data:
+            text += f"{coin['name']} : ${coin['current_price']}\n"
+
+        return text
+
+    except:
+
+        return "Price data unavailable"
+
 
 def get_news():
 
@@ -106,13 +183,31 @@ def get_news():
         text = "📰 <b>Latest Crypto News</b>\n\n"
 
         for n in data["Data"][:5]:
+
             text += f"{n['title']}\n{n['url']}\n\n"
 
         return text
 
     except:
 
-        return "News unavailable right now."
+        return "News unavailable"
+
+# ---------------- AI ASSISTANT ----------------
+
+def ai_answer(question):
+
+    question = question.lower()
+
+    if "bitcoin" in question:
+        return "Bitcoin is the leading cryptocurrency and often drives the entire market."
+
+    if "altcoin" in question:
+        return "Altcoins usually perform well when Bitcoin stabilizes."
+
+    if "trading" in question:
+        return "Successful trading requires discipline, risk management and strategy."
+
+    return "AI analysis: diversify your investments and follow market trends."
 
 # ---------------- ROUTES ----------------
 
@@ -141,281 +236,176 @@ def webhook():
 
     if text == "/start":
 
-        reply = """
+        msg = """
 🤖 <b>OpenClaw AI Coach</b>
 
-Welcome to the Crypto Learning Bot.
+Your Crypto Learning & AI Assistant.
 
-📚 Crypto Education  
-📈 Trading Strategies  
-⚠ Risk Management  
-📊 Market Knowledge  
-💰 Live Prices  
-🧠 AI Market Insights  
-🌕 Altcoins  
-🔒 Staking  
-💼 Portfolio Strategy  
-📰 Crypto News
-
-<i>Powered by Python & Telegram Bot API</i>
+📚 Learn crypto  
+📈 Trading strategies  
+⚠ Risk management  
+📊 Market knowledge  
+💰 Live crypto prices  
+🧠 AI market assistant  
+🌕 Altcoins insights  
+🔒 Staking guide  
+💼 Portfolio strategy  
+📰 Crypto news
 """
 
-        send_message(chat_id, reply, main_menu)
+        send_message(chat_id, msg, main_menu)
 
-# ---------------- MENUS ----------------
+# ---------------- MENU NAVIGATION ----------------
 
     elif text == "📚 Learn":
         send_message(chat_id, "📚 Crypto Education", learn_menu)
 
+    elif text == "📈 Trading":
+        send_message(chat_id, "📈 Trading Strategies", trading_menu)
+
+    elif text == "⚠ Risk":
+        send_message(chat_id, "⚠ Risk Management", risk_menu)
+
+    elif text == "📊 Market":
+        send_message(chat_id, "📊 Market Knowledge", market_menu)
+
     elif text == "💰 Price":
         send_message(chat_id, "💰 Crypto Prices", price_menu)
 
+    elif text == "🧠 AI Assistant":
+        send_message(chat_id, "🧠 AI Assistant", ai_menu)
+
+    elif text == "🌕 Altcoins":
+        send_message(chat_id, "🌕 Altcoins", altcoin_menu)
+
+    elif text == "🔒 Staking":
+        send_message(chat_id, "🔒 Staking", staking_menu)
+
+    elif text == "💼 Portfolio":
+        send_message(chat_id, "💼 Portfolio", portfolio_menu)
+
     elif text == "📰 News":
-        send_message(chat_id, get_news(), main_menu)
+        send_message(chat_id, "📰 Crypto News", news_menu)
 
 # ---------------- LEARN ----------------
 
     elif text == "What is Blockchain":
-
-        msg = """
-🔗 <b>Blockchain</b>
-
-A decentralized digital ledger that records transactions across many computers.
-
-Key features:
-
-• Decentralization  
-• Transparency  
-• Cryptographic security  
-• Immutable records
-"""
-
-        send_message(chat_id, msg, learn_menu)
-
+        send_message(chat_id,"Blockchain is a decentralized ledger that records transactions securely.",learn_menu)
 
     elif text == "Bitcoin Basics":
-
-        msg = """
-₿ <b>Bitcoin Basics</b>
-
-Bitcoin is the first cryptocurrency created in 2009.
-
-Key features:
-
-• Limited supply (21M BTC)  
-• Decentralized network  
-• Peer-to-peer transactions  
-• Secured by mining
-"""
-
-        send_message(chat_id, msg, learn_menu)
-
+        send_message(chat_id,"Bitcoin is the first decentralized cryptocurrency created in 2009.",learn_menu)
 
     elif text == "Trading Psychology":
-
-        msg = """
-🧠 <b>Trading Psychology</b>
-
-Successful traders manage emotions like:
-
-• Fear  
-• Greed  
-• Overconfidence  
-
-Always follow a strategy and avoid emotional decisions.
-"""
-
-        send_message(chat_id, msg, learn_menu)
-
+        send_message(chat_id,"Control fear and greed to become a successful trader.",learn_menu)
 
     elif text == "Market Cycles":
-
-        msg = """
-📊 <b>Market Cycles</b>
-
-Markets move through 4 phases:
-
-1️⃣ Accumulation  
-2️⃣ Bull Market  
-3️⃣ Distribution  
-4️⃣ Bear Market
-"""
-
-        send_message(chat_id, msg, learn_menu)
+        send_message(chat_id,"Markets go through accumulation, bull run, distribution and bear market.",learn_menu)
 
 # ---------------- TRADING ----------------
 
-    elif text == "📈 Trading":
+    elif text == "Day Trading":
+        send_message(chat_id,"Day trading involves opening and closing trades in the same day.",trading_menu)
 
-        msg = """
-📈 <b>Crypto Trading</b>
+    elif text == "Swing Trading":
+        send_message(chat_id,"Swing trading holds positions for days or weeks.",trading_menu)
 
-Common strategies:
-
-• Day Trading  
-• Swing Trading  
-• Long Term Holding
-"""
-
-        send_message(chat_id, msg, main_menu)
+    elif text == "Long Term Investing":
+        send_message(chat_id,"Long-term investors hold assets for years.",trading_menu)
 
 # ---------------- RISK ----------------
 
-    elif text == "⚠ Risk":
+    elif text == "Stop Loss":
+        send_message(chat_id,"A stop loss automatically closes a trade to limit losses.",risk_menu)
 
-        msg = """
-⚠ <b>Risk Management</b>
+    elif text == "Position Size":
+        send_message(chat_id,"Never risk more than 1-2% of your capital per trade.",risk_menu)
 
-Golden rules:
-
-• Never invest more than you can lose  
-• Use stop loss  
-• Diversify your portfolio
-"""
-
-        send_message(chat_id, msg, main_menu)
+    elif text == "Risk Reward":
+        send_message(chat_id,"Good traders aim for at least 1:2 risk reward ratio.",risk_menu)
 
 # ---------------- MARKET ----------------
 
-    elif text == "📊 Market":
+    elif text == "Market Cap":
+        send_message(chat_id,"Market cap is price × circulating supply.",market_menu)
 
-        msg = """
-📊 <b>Crypto Market</b>
+    elif text == "BTC Dominance":
+        send_message(chat_id,"BTC dominance shows Bitcoin's share of the total crypto market.",market_menu)
 
-Key indicators:
+    elif text == "Trading Volume":
+        send_message(chat_id,"Trading volume shows how much of a coin is traded.",market_menu)
 
-• Market Cap  
-• BTC Dominance  
-• Trading Volume
-"""
+# ---------------- PRICE ----------------
 
-        send_message(chat_id, msg, main_menu)
+    elif text == "BTC Price":
+        send_message(chat_id,f"BTC = ${get_price('bitcoin')}",price_menu)
 
-# ---------------- AI ANALYSIS ----------------
+    elif text == "ETH Price":
+        send_message(chat_id,f"ETH = ${get_price('ethereum')}",price_menu)
 
-    elif text == "🧠 AI Analysis":
+    elif text == "SOL Price":
+        send_message(chat_id,f"SOL = ${get_price('solana')}",price_menu)
 
-        msg = """
-🧠 <b>AI Market Insight</b>
-
-Bitcoin often drives the market.
-
-Altcoins usually follow BTC trends.
-"""
-
-        send_message(chat_id, msg, main_menu)
+    elif text == "Top 5 Prices":
+        send_message(chat_id,get_top_prices(),price_menu)
 
 # ---------------- ALTCOINS ----------------
 
-    elif text == "🌕 Altcoins":
+    elif text == "Top Altcoins":
+        send_message(chat_id,"Popular altcoins: Ethereum, Solana, Cardano, Avalanche.",altcoin_menu)
 
-        msg = """
-🌕 <b>Popular Altcoins</b>
-
-• Ethereum  
-• Solana  
-• Cardano  
-• Avalanche
-"""
-
-        send_message(chat_id, msg, main_menu)
+    elif text == "Altcoin Season":
+        send_message(chat_id,"Altcoin season happens when altcoins outperform Bitcoin.",altcoin_menu)
 
 # ---------------- STAKING ----------------
 
-    elif text == "🔒 Staking":
+    elif text == "What is Staking":
+        send_message(chat_id,"Staking allows you to earn rewards by locking coins.",staking_menu)
 
-        msg = """
-🔒 <b>Crypto Staking</b>
-
-Earn rewards by locking coins.
-
-Examples:
-
-• Ethereum  
-• Solana  
-• Cardano
-"""
-
-        send_message(chat_id, msg, main_menu)
+    elif text == "Best Staking Coins":
+        send_message(chat_id,"Popular staking coins: ETH, ADA, SOL.",staking_menu)
 
 # ---------------- PORTFOLIO ----------------
 
-    elif text == "💼 Portfolio":
+    elif text == "Portfolio Strategy":
+        send_message(chat_id,"Diversify between BTC, ETH and altcoins.",portfolio_menu)
 
-        msg = """
-💼 <b>Portfolio Strategy</b>
+    elif text == "Portfolio Example":
+        send_message(chat_id,"Example: 50% BTC, 30% ETH, 20% Altcoins.",portfolio_menu)
 
-Example allocation:
+# ---------------- NEWS ----------------
 
-50% Bitcoin  
-30% Ethereum  
-20% Altcoins
-"""
+    elif text == "Latest News":
+        send_message(chat_id,get_news(),news_menu)
 
-        send_message(chat_id, msg, main_menu)
+# ---------------- AI ----------------
 
-# ---------------- PRICES ----------------
+    elif text == "Market Prediction":
+        send_message(chat_id,"AI predicts long-term growth for crypto adoption.",ai_menu)
 
-    elif text == "BTC Price":
-
-        price = get_price("bitcoin")
-
-        send_message(chat_id, f"💰 BTC Price\n\nBitcoin = ${price}", price_menu)
-
-    elif text == "ETH Price":
-
-        price = get_price("ethereum")
-
-        send_message(chat_id, f"💰 ETH Price\n\nEthereum = ${price}", price_menu)
-
-    elif text == "SOL Price":
-
-        price = get_price("solana")
-
-        send_message(chat_id, f"💰 SOL Price\n\nSolana = ${price}", price_menu)
-
-# ---------------- CHARTS ----------------
-
-    elif text == "📈 BTC Chart":
-
-        url = "https://quickchart.io/chart?c={type:'line',data:{labels:['1','2','3','4','5'],datasets:[{label:'BTC',data:[62000,63000,64000,65000,66000]}]}}"
-
-        send_photo(chat_id, url, "📈 Bitcoin Chart", price_menu)
-
-
-    elif text == "📈 ETH Chart":
-
-        url = "https://quickchart.io/chart?c={type:'line',data:{labels:['1','2','3','4','5'],datasets:[{label:'ETH',data:[3000,3100,3200,3300,3400]}]}}"
-
-        send_photo(chat_id, url, "📈 Ethereum Chart", price_menu)
-
-
-    elif text == "📈 SOL Chart":
-
-        url = "https://quickchart.io/chart?c={type:'line',data:{labels:['1','2','3','4','5'],datasets:[{label:'SOL',data:[100,105,110,120,125]}]}}"
-
-        send_photo(chat_id, url, "📈 Solana Chart", price_menu)
+    elif text == "Ask AI":
+        send_message(chat_id,"Send your question about crypto.",ai_menu)
 
 # ---------------- BACK ----------------
 
     elif text == "⬅ Back":
+        send_message(chat_id,"Main Menu",main_menu)
 
-        send_message(chat_id, "Main Menu", main_menu)
-
-# ---------------- DEFAULT ----------------
+# ---------------- AI FREE QUESTION ----------------
 
     else:
 
-        send_message(chat_id, "Choose a valid option", main_menu)
+        answer = ai_answer(text)
+
+        send_message(chat_id,answer,main_menu)
 
     return jsonify({"ok": True})
 
 
 if __name__ == "__main__":
 
-    port = int(os.environ.get("PORT", 10000))
+    port = int(os.environ.get("PORT",10000))
 
     app.run(
         host="0.0.0.0",
         port=port
-        )
+    )
