@@ -69,8 +69,8 @@ def send(chat_id,text,keyboard=None):
 
     try:
         requests.post(URL+"sendMessage",json=data,timeout=10)
-    except:
-        pass
+    except Exception as e:
+        print("Send error:",e)
 
 
 # COIN PRICE
@@ -89,7 +89,6 @@ def price(coin):
         return data.get(coin,{}).get("usd","Unavailable")
 
     except:
-
         return "Unavailable"
 
 
@@ -109,13 +108,11 @@ def crypto_news():
         text = "📰 Latest Crypto News\n\n"
 
         for n in news:
-
             text += f"{n['title']}\n{n['url']}\n\n"
 
         return text
 
     except:
-
         return "News unavailable."
 
 
@@ -130,7 +127,7 @@ def llama_ai(question):
 
     data = {
         "model": "meta-llama-3.3-70b-instruct",
-        "messages": [
+        "messages":[
             {"role":"system","content":"You are a crypto trading assistant."},
             {"role":"user","content":question}
         ]
@@ -145,9 +142,13 @@ def llama_ai(question):
             timeout=30
         )
 
-        return r.json()["choices"][0]["message"]["content"]
+        response = r.json()
 
-    except:
+        return response["choices"][0]["message"]["content"]
+
+    except Exception as e:
+
+        print("LLAMA ERROR:",e)
 
         return "AI unavailable right now."
 
@@ -160,13 +161,15 @@ def updates(offset):
 
         r = requests.get(
             URL+"getUpdates",
-            params={"offset":offset,"timeout":30},
-            timeout=35
+            params={"offset":offset,"timeout":25},
+            timeout=30
         )
 
         return r.json()
 
-    except:
+    except Exception as e:
+
+        print("Update error:",e)
 
         return {}
 
@@ -177,14 +180,14 @@ def bot():
 
     print("BOT STARTED")
 
-    offset = 0
+    offset = None
 
     while True:
 
         data = updates(offset)
 
         if "result" not in data:
-            time.sleep(1)
+            time.sleep(2)
             continue
 
         for u in data["result"]:
@@ -327,11 +330,14 @@ def bot():
         time.sleep(1)
 
 
-# START
+# START SERVER + BOT
 
 if __name__ == "__main__":
 
-    threading.Thread(target=bot,daemon=True).start()
+    print("Starting server...")
+
+    bot_thread = threading.Thread(target=bot)
+    bot_thread.start()
 
     port = int(os.environ.get("PORT",10000))
 
