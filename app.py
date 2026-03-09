@@ -1,8 +1,16 @@
 import requests
 import time
+import threading
+from flask import Flask
 
 TOKEN = "TON_TOKEN_ICI"
 URL = f"https://api.telegram.org/bot{TOKEN}/"
+
+app = Flask(__name__)
+
+@app.route("/")
+def home():
+    return "Crypto bot running"
 
 # MENUS
 main_menu = {
@@ -39,7 +47,6 @@ back_menu = {
     "keyboard":[["⬅ Back"]],
     "resize_keyboard":True
 }
-
 
 def send(chat_id,text,keyboard=None):
 
@@ -155,42 +162,44 @@ def updates(offset):
         return {}
 
 
-offset = 0
+def bot():
 
-while True:
+    offset = 0
 
-    data = updates(offset)
+    while True:
 
-    if "result" not in data:
-        time.sleep(1)
-        continue
+        data = updates(offset)
 
-    for u in data.get("result",[]):
-
-        offset = u["update_id"]+1
-
-        if "message" not in u:
+        if "result" not in data:
+            time.sleep(1)
             continue
 
-        msg = u["message"]
+        for u in data.get("result",[]):
 
-        if "text" not in msg:
-            continue
+            offset = u["update_id"]+1
 
-        chat = msg["chat"]["id"]
-        text = msg["text"].strip()
+            if "message" not in u:
+                continue
+
+            msg = u["message"]
+
+            if "text" not in msg:
+                continue
+
+            chat = msg["chat"]["id"]
+            text = msg["text"].strip()
 
 
-        if text == "/start":
+            if text == "/start":
 
-            send(chat,
-                 "🤖 Welcome to your Crypto AI Assistant\nChoose a menu:",
-                 main_menu)
+                send(chat,
+                     "🤖 Welcome to your Crypto AI Assistant\nChoose a menu:",
+                     main_menu)
 
 
-        elif "Learn" in text:
+            elif "Learn" in text:
 
-            send(chat,
+                send(chat,
 """📚 Crypto Education
 
 Cryptocurrency is digital money secured by cryptography and powered by blockchain technology.
@@ -204,12 +213,12 @@ Advantages:
 • global access
 
 Cryptocurrencies remove intermediaries like banks.""",
-            back_menu)
+                back_menu)
 
 
-        elif "Trading" in text:
+            elif "Trading" in text:
 
-            send(chat,
+                send(chat,
 """📈 Trading
 
 Crypto trading is buying and selling cryptocurrencies to profit from price movements.
@@ -220,12 +229,12 @@ Scalping – very fast trades
 Day trading – trades opened and closed same day
 Swing trading – trades lasting days or weeks
 Trend trading – following long market trends""",
-            back_menu)
+                back_menu)
 
 
-        elif "Risk" in text:
+            elif "Risk" in text:
 
-            send(chat,
+                send(chat,
 """⚠ Risk Management
 
 Risk management protects your capital.
@@ -235,12 +244,12 @@ Golden rules:
 • always use stop loss
 • diversify your portfolio
 • avoid emotional trading""",
-            back_menu)
+                back_menu)
 
 
-        elif "Market" in text:
+            elif "Market" in text:
 
-            send(chat,
+                send(chat,
 """📊 Market Cycles
 
 Crypto markets move in cycles:
@@ -251,60 +260,60 @@ Crypto markets move in cycles:
 4️⃣ Downtrend
 
 Understanding cycles helps investors buy low and sell high.""",
-            back_menu)
+                back_menu)
 
 
-        elif "Price" in text:
+            elif "Price" in text:
 
-            send(chat,"Choose a cryptocurrency:",price_menu)
-
-
-        elif text=="BTC":
-
-            p=price("bitcoin")
-            send(chat,f"₿ Bitcoin price: ${p}")
-
-        elif text=="ETH":
-
-            p=price("ethereum")
-            send(chat,f"Ξ Ethereum price: ${p}")
-
-        elif text=="SOL":
-
-            p=price("solana")
-            send(chat,f"◎ Solana price: ${p}")
-
-        elif text=="BNB":
-
-            p=price("binancecoin")
-            send(chat,f"BNB price: ${p}")
+                send(chat,"Choose a cryptocurrency:",price_menu)
 
 
-        elif "Charts" in text:
+            elif text=="BTC":
 
-            send(chat,"Choose chart:",chart_menu)
+                p=price("bitcoin")
+                send(chat,f"₿ Bitcoin price: ${p}")
+
+            elif text=="ETH":
+
+                p=price("ethereum")
+                send(chat,f"Ξ Ethereum price: ${p}")
+
+            elif text=="SOL":
+
+                p=price("solana")
+                send(chat,f"◎ Solana price: ${p}")
+
+            elif text=="BNB":
+
+                p=price("binancecoin")
+                send(chat,f"BNB price: ${p}")
 
 
-        elif "BTC Chart" in text:
+            elif "Charts" in text:
 
-            send(chat,"https://www.tradingview.com/chart/?symbol=BINANCE:BTCUSDT")
-
-        elif "ETH Chart" in text:
-
-            send(chat,"https://www.tradingview.com/chart/?symbol=BINANCE:ETHUSDT")
-
-        elif "SOL Chart" in text:
-
-            send(chat,"https://www.tradingview.com/chart/?symbol=BINANCE:SOLUSDT")
-
-        elif "BNB Chart" in text:
-
-            send(chat,"https://www.tradingview.com/chart/?symbol=BINANCE:BNBUSDT")
+                send(chat,"Choose chart:",chart_menu)
 
 
-        elif "Altcoins" in text:
+            elif "BTC Chart" in text:
 
-            send(chat,
+                send(chat,"https://www.tradingview.com/chart/?symbol=BINANCE:BTCUSDT")
+
+            elif "ETH Chart" in text:
+
+                send(chat,"https://www.tradingview.com/chart/?symbol=BINANCE:ETHUSDT")
+
+            elif "SOL Chart" in text:
+
+                send(chat,"https://www.tradingview.com/chart/?symbol=BINANCE:SOLUSDT")
+
+            elif "BNB Chart" in text:
+
+                send(chat,"https://www.tradingview.com/chart/?symbol=BINANCE:BNBUSDT")
+
+
+            elif "Altcoins" in text:
+
+                send(chat,
 """🌕 Altcoins
 
 Altcoins are cryptocurrencies other than Bitcoin.
@@ -315,12 +324,12 @@ Popular altcoins:
 • Cardano
 • Avalanche
 • Polkadot""",
-            back_menu)
+                back_menu)
 
 
-        elif "Staking" in text:
+            elif "Staking" in text:
 
-            send(chat,
+                send(chat,
 """🔒 Staking
 
 Staking means locking your crypto in a network to help validate transactions.
@@ -331,12 +340,12 @@ Popular staking coins:
 • Ethereum
 • Cardano
 • Solana""",
-            back_menu)
+                back_menu)
 
 
-        elif "Portfolio" in text:
+            elif "Portfolio" in text:
 
-            send(chat,
+                send(chat,
 """💼 Portfolio Strategy
 
 Example crypto portfolio:
@@ -347,27 +356,32 @@ Example crypto portfolio:
 10% Stablecoins
 
 Diversification reduces risk.""",
-            back_menu)
+                back_menu)
 
 
-        elif "News" in text:
+            elif "News" in text:
 
-            send(chat,crypto_news(),back_menu)
-
-
-        elif "AI" in text:
-
-            send(chat,"Ask any crypto question.",back_menu)
+                send(chat,crypto_news(),back_menu)
 
 
-        elif "Back" in text:
+            elif "AI" in text:
 
-            send(chat,"Main menu",main_menu)
-
-
-        else:
-
-            send(chat,ai_answer(text))
+                send(chat,"Ask any crypto question.",back_menu)
 
 
-    time.sleep(1)
+            elif "Back" in text:
+
+                send(chat,"Main menu",main_menu)
+
+
+            else:
+
+                send(chat,ai_answer(text))
+
+        time.sleep(1)
+
+
+threading.Thread(target=bot).start()
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=10000)
