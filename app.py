@@ -5,6 +5,10 @@ from flask import Flask, request, jsonify
 app = Flask(__name__)
 
 BOT_TOKEN = os.environ.get("BOT_TOKEN")
+
+if not BOT_TOKEN:
+    raise ValueError("BOT_TOKEN environment variable not set")
+
 TELEGRAM_API = f"https://api.telegram.org/bot{BOT_TOKEN}"
 
 user_state = {}
@@ -29,17 +33,17 @@ def send_message(chat_id, text, keyboard=None):
 
     try:
         requests.post(url, json=payload, timeout=10)
-    except:
-        pass
+    except Exception as e:
+        print("Telegram send error:", e)
 
 
 # ---------- MAIN MENU ----------
 
 main_menu = [
-["1","2","3"],
-["4","5","6"],
-["7","8","9"],
-["10"]
+    ["1", "2", "3"],
+    ["4", "5", "6"],
+    ["7", "8", "9"],
+    ["10"]
 ]
 
 back_button = [["⬅ Back"]]
@@ -51,9 +55,15 @@ def get_crypto_prices():
 
     try:
 
-        url = "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana&vs_currencies=usd"
+        url = "https://api.coingecko.com/api/v3/simple/price"
 
-        data = requests.get(url).json()
+        params = {
+            "ids": "bitcoin,ethereum,solana",
+            "vs_currencies": "usd"
+        }
+
+        r = requests.get(url, params=params, timeout=10)
+        data = r.json()
 
         btc = data["bitcoin"]["usd"]
         eth = data["ethereum"]["usd"]
@@ -67,8 +77,9 @@ ETH : ${eth}
 SOL : ${sol}
 """
 
-    except:
-        return "Unable to fetch prices."
+    except Exception as e:
+        print("Price API error:", e)
+        return "⚠ Unable to fetch prices."
 
 
 # ---------- HOME ----------
@@ -86,22 +97,23 @@ def webhook():
     data = request.get_json()
 
     if not data:
-        return jsonify({"status":"ok"}),200
+        return jsonify({"status": "ok"}), 200
 
     message = data.get("message")
 
     if not message:
-        return jsonify({"status":"ok"}),200
+        return jsonify({"status": "ok"}), 200
 
     chat_id = message["chat"]["id"]
-    text = message.get("text","")
+    text = message.get("text", "")
 
-    state = user_state.get(chat_id,"main")
+    if not text:
+        return jsonify({"status": "ok"}), 200
 
 
 # ---------- START ----------
 
-    if text in ["/start","menu","Menu"]:
+    if text in ["/start", "menu", "Menu"]:
 
         user_state[chat_id] = "main"
 
@@ -132,9 +144,9 @@ def webhook():
 
 Learn the fundamentals of crypto:
 
-• What is blockchain
-• Bitcoin basics
-• Trading psychology
+• What is blockchain  
+• Bitcoin basics  
+• Trading psychology  
 • Market cycles
 """
 
@@ -150,9 +162,9 @@ Learn the fundamentals of crypto:
 
 Popular trading styles:
 
-• Scalping
-• Day trading
-• Swing trading
+• Scalping  
+• Day trading  
+• Swing trading  
 • Trend trading
 """
 
@@ -168,8 +180,8 @@ Popular trading styles:
 
 Golden rules:
 
-• Never risk more than 2%
-• Always use stop loss
+• Never risk more than 2%  
+• Always use stop loss  
 • Protect your capital
 """
 
@@ -185,8 +197,8 @@ Golden rules:
 
 Understand:
 
-• Bull markets
-• Bear markets
+• Bull markets  
+• Bear markets  
 • Market sentiment
 """
 
@@ -211,8 +223,8 @@ Understand:
 
 AI analyzes:
 
-• trend strength
-• volatility
+• trend strength  
+• volatility  
 • market sentiment
 """
 
@@ -294,17 +306,17 @@ Stay updated with the latest crypto developments.
 
         send_message(chat_id, reply, main_menu)
 
-
-    return jsonify({"status":"ok"}),200
+    return jsonify({"status": "ok"}), 200
 
 
 # ---------- RUN ----------
 
 if __name__ == "__main__":
 
-    port = int(os.environ.get("PORT",10000))
+    port = int(os.environ.get("PORT", 10000))
 
     app.run(
         host="0.0.0.0",
-        port=port
+        port=port,
+        debug=False
         )
