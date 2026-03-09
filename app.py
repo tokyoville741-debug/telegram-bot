@@ -7,6 +7,8 @@ app = Flask(__name__)
 BOT_TOKEN = os.environ.get("BOT_TOKEN")
 TELEGRAM_API = f"https://api.telegram.org/bot{BOT_TOKEN}"
 
+# ---------------- SEND FUNCTIONS ----------------
+
 def send_message(chat_id, text, keyboard=None):
 
     url = f"{TELEGRAM_API}/sendMessage"
@@ -24,6 +26,7 @@ def send_message(chat_id, text, keyboard=None):
         }
 
     requests.post(url, json=payload)
+
 
 def send_photo(chat_id, url, caption=None, keyboard=None):
 
@@ -43,7 +46,7 @@ def send_photo(chat_id, url, caption=None, keyboard=None):
 
     requests.post(api, json=payload)
 
-# MENUS
+# ---------------- MENUS ----------------
 
 main_menu = [
     ["📚 Learn", "📈 Trading"],
@@ -68,44 +71,55 @@ price_menu = [
     ["⬅ Back"]
 ]
 
-# PRICE FUNCTIONS
+# ---------------- PRICE FUNCTION ----------------
 
 def get_price(coin):
 
-    url = "https://api.coingecko.com/api/v3/simple/price"
+    try:
 
-    params = {
-        "ids": coin,
-        "vs_currencies": "usd"
-    }
+        url = "https://api.coingecko.com/api/v3/simple/price"
 
-    r = requests.get(url, params=params)
-    data = r.json()
+        params = {
+            "ids": coin,
+            "vs_currencies": "usd"
+        }
 
-    return data[coin]["usd"]
+        r = requests.get(url, params=params)
+        data = r.json()
 
-# NEWS
+        return data[coin]["usd"]
+
+    except:
+        return "Unavailable"
+
+# ---------------- NEWS ----------------
 
 def get_news():
 
-    url = "https://min-api.cryptocompare.com/data/v2/news/?lang=EN"
+    try:
 
-    r = requests.get(url)
+        url = "https://min-api.cryptocompare.com/data/v2/news/?lang=EN"
 
-    data = r.json()
+        r = requests.get(url)
+        data = r.json()
 
-    text = "📰 Latest Crypto News\n\n"
+        text = "📰 <b>Latest Crypto News</b>\n\n"
 
-    for n in data["Data"][:5]:
+        for n in data["Data"][:5]:
+            text += f"{n['title']}\n{n['url']}\n\n"
 
-        text += f"{n['title']}\n{n['url']}\n\n"
+        return text
 
-    return text
+    except:
+
+        return "News unavailable right now."
+
+# ---------------- ROUTES ----------------
 
 @app.route("/")
 def home():
-
     return "Bot running"
+
 
 @app.route("/webhook", methods=["POST"])
 def webhook():
@@ -123,7 +137,7 @@ def webhook():
     chat_id = message["chat"]["id"]
     text = message.get("text", "")
 
-    # START
+# ---------------- START ----------------
 
     if text == "/start":
 
@@ -132,17 +146,15 @@ def webhook():
 
 Welcome to the Crypto Learning Bot.
 
-Learn cryptocurrency, trading strategies and market analysis directly inside Telegram.
-
-📚 Crypto Education
-📈 Trading Strategies
-⚠ Risk Management
-📊 Market Knowledge
-💰 Live Prices
-🧠 AI Market Insights
-🌕 Altcoins
-🔒 Staking
-💼 Portfolio Strategy
+📚 Crypto Education  
+📈 Trading Strategies  
+⚠ Risk Management  
+📊 Market Knowledge  
+💰 Live Prices  
+🧠 AI Market Insights  
+🌕 Altcoins  
+🔒 Staking  
+💼 Portfolio Strategy  
 📰 Crypto News
 
 <i>Powered by Python & Telegram Bot API</i>
@@ -150,7 +162,7 @@ Learn cryptocurrency, trading strategies and market analysis directly inside Tel
 
         send_message(chat_id, reply, main_menu)
 
-    # MENUS
+# ---------------- MENUS ----------------
 
     elif text == "📚 Learn":
         send_message(chat_id, "📚 Crypto Education", learn_menu)
@@ -161,51 +173,188 @@ Learn cryptocurrency, trading strategies and market analysis directly inside Tel
     elif text == "📰 News":
         send_message(chat_id, get_news(), main_menu)
 
-    # DEFINITIONS
+# ---------------- LEARN ----------------
 
     elif text == "What is Blockchain":
 
         msg = """
-🔗 Blockchain
+🔗 <b>Blockchain</b>
 
-Blockchain is a decentralized digital ledger that records transactions across a distributed network of computers.
-
-Instead of relying on a central authority, the system uses consensus between many nodes.
+A decentralized digital ledger that records transactions across many computers.
 
 Key features:
 
 • Decentralization  
 • Transparency  
-• Security through cryptography  
-• Immutability of records
-
-Blockchain technology is the foundation of cryptocurrencies like Bitcoin and Ethereum.
+• Cryptographic security  
+• Immutable records
 """
 
         send_message(chat_id, msg, learn_menu)
+
 
     elif text == "Bitcoin Basics":
 
         msg = """
-₿ Bitcoin Basics
+₿ <b>Bitcoin Basics</b>
 
-Bitcoin is the first decentralized cryptocurrency created in 2009 by Satoshi Nakamoto.
+Bitcoin is the first cryptocurrency created in 2009.
 
-It allows users to send digital money directly to each other without banks or intermediaries.
+Key features:
 
-Main characteristics:
-
-• Limited supply (21 million BTC)
-• Decentralized network
-• Peer-to-peer transactions
+• Limited supply (21M BTC)  
+• Decentralized network  
+• Peer-to-peer transactions  
 • Secured by mining
-
-Bitcoin is often referred to as "digital gold".
 """
 
         send_message(chat_id, msg, learn_menu)
 
-    # PRICES
+
+    elif text == "Trading Psychology":
+
+        msg = """
+🧠 <b>Trading Psychology</b>
+
+Successful traders manage emotions like:
+
+• Fear  
+• Greed  
+• Overconfidence  
+
+Always follow a strategy and avoid emotional decisions.
+"""
+
+        send_message(chat_id, msg, learn_menu)
+
+
+    elif text == "Market Cycles":
+
+        msg = """
+📊 <b>Market Cycles</b>
+
+Markets move through 4 phases:
+
+1️⃣ Accumulation  
+2️⃣ Bull Market  
+3️⃣ Distribution  
+4️⃣ Bear Market
+"""
+
+        send_message(chat_id, msg, learn_menu)
+
+# ---------------- TRADING ----------------
+
+    elif text == "📈 Trading":
+
+        msg = """
+📈 <b>Crypto Trading</b>
+
+Common strategies:
+
+• Day Trading  
+• Swing Trading  
+• Long Term Holding
+"""
+
+        send_message(chat_id, msg, main_menu)
+
+# ---------------- RISK ----------------
+
+    elif text == "⚠ Risk":
+
+        msg = """
+⚠ <b>Risk Management</b>
+
+Golden rules:
+
+• Never invest more than you can lose  
+• Use stop loss  
+• Diversify your portfolio
+"""
+
+        send_message(chat_id, msg, main_menu)
+
+# ---------------- MARKET ----------------
+
+    elif text == "📊 Market":
+
+        msg = """
+📊 <b>Crypto Market</b>
+
+Key indicators:
+
+• Market Cap  
+• BTC Dominance  
+• Trading Volume
+"""
+
+        send_message(chat_id, msg, main_menu)
+
+# ---------------- AI ANALYSIS ----------------
+
+    elif text == "🧠 AI Analysis":
+
+        msg = """
+🧠 <b>AI Market Insight</b>
+
+Bitcoin often drives the market.
+
+Altcoins usually follow BTC trends.
+"""
+
+        send_message(chat_id, msg, main_menu)
+
+# ---------------- ALTCOINS ----------------
+
+    elif text == "🌕 Altcoins":
+
+        msg = """
+🌕 <b>Popular Altcoins</b>
+
+• Ethereum  
+• Solana  
+• Cardano  
+• Avalanche
+"""
+
+        send_message(chat_id, msg, main_menu)
+
+# ---------------- STAKING ----------------
+
+    elif text == "🔒 Staking":
+
+        msg = """
+🔒 <b>Crypto Staking</b>
+
+Earn rewards by locking coins.
+
+Examples:
+
+• Ethereum  
+• Solana  
+• Cardano
+"""
+
+        send_message(chat_id, msg, main_menu)
+
+# ---------------- PORTFOLIO ----------------
+
+    elif text == "💼 Portfolio":
+
+        msg = """
+💼 <b>Portfolio Strategy</b>
+
+Example allocation:
+
+50% Bitcoin  
+30% Ethereum  
+20% Altcoins
+"""
+
+        send_message(chat_id, msg, main_menu)
+
+# ---------------- PRICES ----------------
 
     elif text == "BTC Price":
 
@@ -225,7 +374,7 @@ Bitcoin is often referred to as "digital gold".
 
         send_message(chat_id, f"💰 SOL Price\n\nSolana = ${price}", price_menu)
 
-    # CHARTS
+# ---------------- CHARTS ----------------
 
     elif text == "📈 BTC Chart":
 
@@ -233,11 +382,13 @@ Bitcoin is often referred to as "digital gold".
 
         send_photo(chat_id, url, "📈 Bitcoin Chart", price_menu)
 
+
     elif text == "📈 ETH Chart":
 
         url = "https://quickchart.io/chart?c={type:'line',data:{labels:['1','2','3','4','5'],datasets:[{label:'ETH',data:[3000,3100,3200,3300,3400]}]}}"
 
         send_photo(chat_id, url, "📈 Ethereum Chart", price_menu)
+
 
     elif text == "📈 SOL Chart":
 
@@ -245,15 +396,20 @@ Bitcoin is often referred to as "digital gold".
 
         send_photo(chat_id, url, "📈 Solana Chart", price_menu)
 
+# ---------------- BACK ----------------
+
     elif text == "⬅ Back":
 
         send_message(chat_id, "Main Menu", main_menu)
+
+# ---------------- DEFAULT ----------------
 
     else:
 
         send_message(chat_id, "Choose a valid option", main_menu)
 
     return jsonify({"ok": True})
+
 
 if __name__ == "__main__":
 
@@ -262,4 +418,4 @@ if __name__ == "__main__":
     app.run(
         host="0.0.0.0",
         port=port
-)
+        )
