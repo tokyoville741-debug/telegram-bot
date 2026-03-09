@@ -8,6 +8,7 @@ TOKEN = os.environ.get("BOT_TOKEN")
 URL = f"https://api.telegram.org/bot{TOKEN}"
 
 user_lang = {}
+webhook_set = False
 
 # ===================== MENUS =====================
 
@@ -545,12 +546,20 @@ def bot():
 
 # ===================== WEBHOOK =====================
 
-@app.before_first_request
-def webhook():
+@app.before_request
+def setup_webhook():
 
-    url=os.environ.get("RENDER_EXTERNAL_URL")+f"/{TOKEN}"
+    global webhook_set
 
-    requests.get(URL+"/setWebhook",params={"url":url})
+    if not webhook_set:
+
+        url=os.environ.get("RENDER_EXTERNAL_URL")+f"/{TOKEN}"
+
+        requests.get(URL+"/setWebhook",params={"url":url})
+
+        webhook_set=True
+
+# ===================== RUN =====================
 
 if __name__=="__main__":
 
