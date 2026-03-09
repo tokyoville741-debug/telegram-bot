@@ -19,14 +19,23 @@ GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
 # SEND TELEGRAM MESSAGE
 # ==============================
 
-def send_message(chat_id, text):
+def send_message(chat_id, text, buttons=None):
+
+    payload = {
+        "chat_id": chat_id,
+        "text": text
+    }
+
+    if buttons:
+        payload["reply_markup"] = {
+            "keyboard": buttons,
+            "resize_keyboard": True
+        }
+
     try:
         requests.post(
             TELEGRAM_API,
-            json={
-                "chat_id": chat_id,
-                "text": text
-            },
+            json=payload,
             timeout=10
         )
     except Exception as e:
@@ -88,6 +97,40 @@ def home():
 
 
 # ==============================
+# MAIN MENU
+# ==============================
+
+def main_menu(chat_id):
+
+    text = """
+🤖 OpenClaw AI Coach
+
+Choose a section:
+
+1️⃣ Learn
+2️⃣ Trading
+3️⃣ Risk
+4️⃣ Market
+5️⃣ Price
+6️⃣ AI Analysis
+7️⃣ Altcoins
+8️⃣ Staking
+9️⃣ Portfolio
+🔟 News
+"""
+
+    buttons = [
+        ["📚 Learn", "📈 Trading"],
+        ["⚠️ Risk", "📊 Market"],
+        ["💰 Price", "🧠 AI Analysis"],
+        ["🪙 Altcoins", "🔒 Staking"],
+        ["💼 Portfolio", "📰 News"]
+    ]
+
+    send_message(chat_id, text, buttons)
+
+
+# ==============================
 # TELEGRAM WEBHOOK
 # ==============================
 
@@ -96,153 +139,166 @@ def webhook():
 
     data = request.get_json()
 
-    print(data)
-
     if "message" not in data:
         return "ok"
 
     chat_id = data["message"]["chat"]["id"]
     text = data["message"].get("text", "")
 
+
+    # ==========================
+    # BACK BUTTON
+    # ==========================
+
+    if text == "🔙 Back":
+        main_menu(chat_id)
+        return "ok"
+
+
+    # ==========================
+    # BUTTON SHORTCUTS
+    # ==========================
+
+    if text == "📚 Learn":
+        text = "/learn"
+
+    elif text == "📈 Trading":
+        text = "/trading"
+
+    elif text == "⚠️ Risk":
+        text = "/risk"
+
+    elif text == "📊 Market":
+        text = "/market"
+
+    elif text == "💰 Price":
+        text = "/prices"
+
+    elif text == "🧠 AI Analysis":
+        text = "/analyze BTC"
+
+    elif text == "🪙 Altcoins":
+        text = "/altcoins"
+
+    elif text == "🔒 Staking":
+        text = "/staking"
+
+    elif text == "💼 Portfolio":
+        text = "/portfolio"
+
+    elif text == "📰 News":
+        text = "/news"
+
+
+    # ==========================
+    # NUMBER SHORTCUTS
+    # ==========================
+
+    if text == "1":
+        text = "/learn"
+    elif text == "2":
+        text = "/trading"
+    elif text == "3":
+        text = "/risk"
+    elif text == "4":
+        text = "/market"
+    elif text == "5":
+        text = "/prices"
+    elif text == "6":
+        text = "/analyze BTC"
+    elif text == "7":
+        text = "/altcoins"
+    elif text == "8":
+        text = "/staking"
+    elif text == "9":
+        text = "/portfolio"
+    elif text == "10":
+        text = "/news"
+
+
     # ==========================
     # COMMANDS
     # ==========================
 
     if text == "/start":
+        main_menu(chat_id)
+        return "ok"
 
-        reply = """
-🤖 Welcome to OpenClaw AI Coach 🚀
-
-Your AI assistant for learning crypto and mastering the Binance ecosystem.
-
-📚 Learning
-/learn - Crypto basics
-/trading - Trading strategies
-/risk - Risk management
-
-📊 Market
-/market - Market cycles
-/price - Crypto prices
-/analyze - AI market analysis
-
-💰 Opportunities
-/altcoins - Altcoin research
-/staking - Passive income
-/portfolio - Portfolio tips
-
-📰 Updates
-/news - Latest crypto news
-/strategy - Trading strategies
-
-━━━━━━━━━━━━━━
-Type /help for the full guide.
-"""
-
-    elif text == "/help":
-
-        reply = """
-Available Commands 🤖
-
-📚 Learning
-/learn - Crypto basics
-/trading - Trading strategies
-/risk - Risk management
-
-📊 Market
-/market - Market cycles
-/price - Crypto prices
-/analyze - AI analysis
-
-💰 Opportunities
-/altcoins - Altcoin research
-/staking - Passive income
-/portfolio - Portfolio management
-
-📰 Updates
-/news - Latest crypto news
-/strategy - Trading strategies
-
-⚙️ Platform
-/binance - Binance ecosystem guide
-"""
 
     elif text == "/learn":
 
         reply = """
-Crypto Learning Hub 📚
+📚 Crypto Learning Hub
 
-Topics:
-
-• What is Blockchain
-• What is Bitcoin
-• What is Crypto Trading
-• Spot vs Futures
-• Risk Management
+1️⃣ What is Blockchain
+2️⃣ What is Bitcoin
+3️⃣ What is Crypto Trading
+4️⃣ Spot vs Futures
+5️⃣ Risk Management
 """
 
-    elif text == "/binance":
+        buttons = [["🔙 Back"]]
+        send_message(chat_id, reply, buttons)
+        return "ok"
 
-        reply = """
-Binance Ecosystem Guide 🟡
-
-• Spot Trading
-• Futures Trading
-• Binance Earn
-• Binance Wallet
-• Security Tools
-"""
 
     elif text == "/trading":
 
         reply = """
-Trading Basics 📈
+📈 Trading Basics
 
-Key concepts:
-
-• Support & Resistance
-• Trends
-• Moving averages
-• RSI indicator
-• Market cycles
+1️⃣ Support & Resistance
+2️⃣ Market Trends
+3️⃣ Moving Averages
+4️⃣ RSI Indicator
+5️⃣ Market Cycles
 """
+
+        buttons = [["🔙 Back"]]
+        send_message(chat_id, reply, buttons)
+        return "ok"
+
 
     elif text == "/risk":
 
         reply = """
-Risk Management ⚠️
+⚠️ Risk Management
 
-Golden rules:
-
-• Use stop losses
-• Manage position size
-• Control emotions
-• Diversify assets
+1️⃣ Use stop losses
+2️⃣ Manage position size
+3️⃣ Control emotions
+4️⃣ Diversify assets
 """
+
+        buttons = [["🔙 Back"]]
+        send_message(chat_id, reply, buttons)
+        return "ok"
+
 
     elif text == "/market":
 
         reply = """
-Market Cycles 🔎
+📊 Market Cycles
 
 Bull market → optimism
-
 Bear market → fear
 
-Successful traders focus on:
+Focus on:
 trend + patience + discipline
 """
+
+        buttons = [["🔙 Back"]]
+        send_message(chat_id, reply, buttons)
+        return "ok"
+
 
     elif text == "/portfolio":
 
         reply = """
-Portfolio Management 💼
+💼 Portfolio Management
 
-Basic strategy:
-
-• Diversify assets
-• Allocate capital wisely
-• Avoid overexposure
-• Rebalance regularly
+Diversify assets
+Rebalance regularly
 
 Example:
 
@@ -252,30 +308,34 @@ Alts 20%
 Stablecoins 10%
 """
 
-    # ==========================
-    # PRICE COMMAND
-    # ==========================
+        buttons = [["🔙 Back"]]
+        send_message(chat_id, reply, buttons)
+        return "ok"
 
-    elif text.startswith("/price"):
 
-        coin = text.replace("/price", "").strip()
+    elif text == "/prices":
 
-        if coin == "":
-            coin = "BTC"
+        coins = ["BTCUSDT", "ETHUSDT", "BNBUSDT", "SOLUSDT"]
 
-        try:
-            url = f"https://api.binance.com/api/v3/ticker/price?symbol={coin.upper()}USDT"
-            r = requests.get(url)
-            price = r.json()["price"]
+        prices = []
 
-            reply = f"💰 {coin.upper()} price: ${float(price):,.2f}"
+        for coin in coins:
+            try:
+                url = f"https://api.binance.com/api/v3/ticker/price?symbol={coin}"
+                r = requests.get(url)
+                price = r.json()["price"]
 
-        except:
-            reply = "Unable to fetch price."
+                prices.append(f"{coin.replace('USDT','')} : ${float(price):,.2f}")
 
-    # ==========================
-    # AI ANALYSIS
-    # ==========================
+            except:
+                prices.append(f"{coin} error")
+
+        reply = "💰 Live Crypto Prices\n\n" + "\n".join(prices)
+
+        buttons = [["🔙 Back"]]
+        send_message(chat_id, reply, buttons)
+        return "ok"
+
 
     elif text.startswith("/analyze"):
 
@@ -286,59 +346,56 @@ Stablecoins 10%
 
         reply = ask_ai(f"Give a short crypto market analysis for {coin}")
 
+        buttons = [["🔙 Back"]]
+        send_message(chat_id, reply, buttons)
+        return "ok"
+
+
     elif text == "/news":
 
         reply = """
-Crypto News 📰
+📰 Crypto News
 
-Follow the latest updates in the crypto market.
-
-Sources:
-• CoinDesk
-• CoinTelegraph
-• Binance Research
+1️⃣ CoinDesk
+2️⃣ CoinTelegraph
+3️⃣ Binance Research
 """
 
-    elif text == "/strategy":
+        buttons = [["🔙 Back"]]
+        send_message(chat_id, reply, buttons)
+        return "ok"
 
-        reply = """
-Trading Strategies 📊
-
-• Day Trading
-• Swing Trading
-• Trend Following
-• Dollar Cost Averaging
-• Long Term Investing
-"""
 
     elif text == "/altcoins":
 
         reply = """
-Altcoin Guide 🪙
+🪙 Altcoin Guide
 
-Altcoins are cryptocurrencies other than Bitcoin.
-
-Examples:
-
-• Ethereum
-• Solana
-• Cardano
-• Avalanche
+1️⃣ Ethereum
+2️⃣ Solana
+3️⃣ Cardano
+4️⃣ Avalanche
 """
+
+        buttons = [["🔙 Back"]]
+        send_message(chat_id, reply, buttons)
+        return "ok"
+
 
     elif text == "/staking":
 
         reply = """
-Staking Guide 🔒
+🔒 Staking Guide
 
-Earn passive income by staking crypto.
-
-Popular assets:
-
-• ETH
-• ADA
-• SOL
+1️⃣ ETH
+2️⃣ ADA
+3️⃣ SOL
 """
+
+        buttons = [["🔙 Back"]]
+        send_message(chat_id, reply, buttons)
+        return "ok"
+
 
     else:
 
@@ -349,7 +406,8 @@ Popular assets:
             print("AI error:", e)
             reply = "AI error. Please try again."
 
-    send_message(chat_id, reply)
+        buttons = [["🔙 Back"]]
+        send_message(chat_id, reply, buttons)
 
     return "ok"
 
