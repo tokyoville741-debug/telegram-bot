@@ -141,14 +141,21 @@ def send(chat,text,menu=None):
 # ===================== PRICE =====================
 
 def price(coin):
-
     try:
-        r=requests.get(
-        "https://api.coingecko.com/api/v3/simple/price",
-        params={"ids":coin,"vs_currencies":"usd"}
+        r = requests.get(
+            f"https://api.coinpaprika.com/v1/tickers/{coin}",
+            timeout=10
         )
-        data=r.json()
-        return data[coin]["usd"]
+
+        if r.status_code != 200:
+            return "Unavailable"
+
+        data = r.json()
+
+        price = data["quotes"]["USD"]["price"]
+
+        return round(price,2)
+
     except:
         return "Unavailable"
 
@@ -387,19 +394,19 @@ def bot():
 
         elif text=="5.1 BTC":
 
-            send(chat,f"Bitcoin Price: ${price('bitcoin')}")
+            send(chat,f"Bitcoin Price: ${price('btc-bitcoin')}")
 
         elif text=="5.2 ETH":
 
-            send(chat,f"Ethereum Price: ${price('ethereum')}")
+            send(chat,f"Ethereum Price: ${price('eth-ethereum')}")
 
         elif text=="5.3 BNB":
 
-            send(chat,f"BNB Price: ${price('binancecoin')}")
+            send(chat,f"BNB Price: ${price('bnb-binance-coin')}")
 
         elif text=="5.4 SOL":
 
-            send(chat,f"Solana Price: ${price('solana')}")
+            send(chat,f"Solana Price: ${price('sol-solana')}")
 
 # ===================== CHARTS =====================
 
