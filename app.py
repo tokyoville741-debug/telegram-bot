@@ -6,50 +6,63 @@ from flask import Flask
 
 app = Flask(__name__)
 
-# =========================
-# BOT CONFIG
-# =========================
-
 TOKEN = os.environ.get("BOT_TOKEN")
 URL = f"https://api.telegram.org/bot{TOKEN}/"
 
 ai_mode = {}
-languages = {}
-
-# =========================
-# WEB SERVER
-# =========================
 
 @app.route("/")
 def home():
-    return "Crypto AI Bot running 🚀"
+    return "Crypto AI Bot running"
 
-# =========================
-# MENUS
-# =========================
+# ===================== MENUS =====================
 
-main_menu = {
+main_menu={
 "keyboard":[
-["1️⃣ 📚 Learn","2️⃣ 📈 Trading"],
-["3️⃣ ⚠ Risk","4️⃣ 📊 Market"],
-["5️⃣ 💰 Price","6️⃣ 📊 Charts"],
-["7️⃣ 🌕 Altcoins","8️⃣ 🔒 Staking"],
-["9️⃣ 💼 Portfolio","🔟 📰 News"],
-["🧠 AI Assistant"],
-["🌍 Language"]
+["📚 Learn","📈 Trading"],
+["⚠ Risk","📊 Market"],
+["💰 Price","📉 Charts"],
+["🌕 Altcoins","🔒 Staking"],
+["💼 Portfolio","📰 News"],
+["🧠 AI Assistant"]
 ],
 "resize_keyboard":True
 }
 
-back_menu={
-"keyboard":[["⬅ Back"]],
+back_menu={"keyboard":[["⬅ Back"]],"resize_keyboard":True}
+
+learn_menu={
+"keyboard":[
+["What is Crypto","Blockchain"],
+["Bitcoin","Wallets"],
+["DeFi"],
+["⬅ Back"]
+],
 "resize_keyboard":True
 }
 
-language_menu={
+trading_menu={
 "keyboard":[
-["🇬🇧 English","🇫🇷 Français"],
-["🇪🇸 Español"],
+["Spot Trading","Futures Trading"],
+["Technical Analysis","Trading Strategies"],
+["⬅ Back"]
+],
+"resize_keyboard":True
+}
+
+risk_menu={
+"keyboard":[
+["Stop Loss","Risk Reward"],
+["Position Size"],
+["⬅ Back"]
+],
+"resize_keyboard":True
+}
+
+market_menu={
+"keyboard":[
+["Bull Market","Bear Market"],
+["Market Cycle"],
 ["⬅ Back"]
 ],
 "resize_keyboard":True
@@ -73,26 +86,50 @@ chart_menu={
 "resize_keyboard":True
 }
 
-trading_menu={
+alt_menu={
 "keyboard":[
-["1️⃣ Day Trading"],
-["2️⃣ Swing Trading"],
-["3️⃣ Scalping"],
-["4️⃣ Long-term Investing"],
+["Ethereum","Solana"],
+["Cardano"],
 ["⬅ Back"]
 ],
 "resize_keyboard":True
 }
 
-# =========================
-# SEND MESSAGE
-# =========================
+staking_menu={
+"keyboard":[
+["What is Staking","Staking Rewards"],
+["Staking Risks"],
+["⬅ Back"]
+],
+"resize_keyboard":True
+}
 
-def send(chat_id,text,keyboard=None):
+portfolio_menu={
+"keyboard":[
+["Diversification","Long Term Strategy"],
+["Portfolio Example"],
+["⬅ Back"]
+],
+"resize_keyboard":True
+}
+
+news_menu={
+"keyboard":[
+["Bitcoin News","Market News"],
+["Regulation News"],
+["⬅ Back"]
+],
+"resize_keyboard":True
+}
+
+# ================= SEND =================
+
+def send(chat,text,keyboard=None):
 
     payload={
-        "chat_id":chat_id,
-        "text":text
+    "chat_id":chat,
+    "text":text,
+    "parse_mode":"HTML"
     }
 
     if keyboard:
@@ -103,36 +140,25 @@ def send(chat_id,text,keyboard=None):
     except:
         pass
 
-# =========================
-# GET UPDATES
-# =========================
+# ================= API =================
 
-def get_updates(offset):
+def updates(offset):
 
     try:
-
-        r=requests.get(
-            URL+"getUpdates",
-            params={"offset":offset,"timeout":25}
-        )
-
+        r=requests.get(URL+"getUpdates",params={"offset":offset,"timeout":25})
         return r.json()
-
     except:
-
         return {}
 
-# =========================
-# CRYPTO PRICE
-# =========================
+# ================= PRICE =================
 
 def price(coin):
 
     try:
 
         r=requests.get(
-            "https://api.coingecko.com/api/v3/simple/price",
-            params={"ids":coin,"vs_currencies":"usd"}
+        "https://api.coingecko.com/api/v3/simple/price",
+        params={"ids":coin,"vs_currencies":"usd"}
         )
 
         data=r.json()
@@ -143,204 +169,282 @@ def price(coin):
 
         return "Unavailable"
 
-# =========================
-# NEWS
-# =========================
+# ================= NEWS =================
 
-def crypto_news():
+def bitcoin_news():
 
     return """
-📰 CRYPTO NEWS
+📰 <b>Bitcoin News</b>
 
-Bitcoin adoption continues growing globally.
+🔗 https://www.coindesk.com/tag/bitcoin/
 
-Ethereum ecosystem expands through DeFi and NFTs.
+🔗 https://cointelegraph.com/tags/bitcoin
 
-Institutional investors are entering crypto markets.
-
-Always research before investing.
+🔗 https://cryptonews.com/news/bitcoin-news/
 """
 
-# =========================
-# AI ASSISTANT
-# =========================
+def market_news():
 
-def llama_ai(question):
+    return """
+📰 <b>Crypto Market News</b>
 
-    return "🤖 AI: Crypto markets are volatile. Always manage risk and diversify."
+🔗 https://www.coindesk.com/markets/
 
-# =========================
-# BOT LOOP
-# =========================
+🔗 https://cointelegraph.com/tags/cryptocurrency
 
-def run_bot():
+🔗 https://cryptonews.com/news/
+"""
+
+def regulation_news():
+
+    return """
+📰 <b>Crypto Regulation News</b>
+
+🔗 https://www.coindesk.com/policy/
+
+🔗 https://cointelegraph.com/tags/regulation
+"""
+
+# ================= AI =================
+
+def ai_answer(q):
+
+    return f"""
+🤖 AI Assistant
+
+Question:
+{q}
+
+Cryptocurrency markets are volatile.
+
+Tips:
+• diversify your portfolio
+• manage risk carefully
+• always research before investing
+"""
+
+# ================= BOT =================
+
+def run():
 
     offset=0
 
     while True:
 
-        updates=get_updates(offset)
+        data=updates(offset)
 
-        if "result" in updates:
+        if "result" in data:
 
-            for update in updates["result"]:
+            for u in data["result"]:
 
-                offset=update["update_id"]+1
+                offset=u["update_id"]+1
 
-                if "message" not in update:
+                if "message" not in u:
                     continue
 
-                msg=update["message"]
+                msg=u["message"]
                 chat=msg["chat"]["id"]
-                text=msg.get("text","")
+                text=msg.get("text","").strip()
 
-                text=text.strip()
+# START
 
-                # START
                 if text=="/start":
 
-                    welcome="""
-🤖 Welcome to the Crypto AI Bot
-
-Learn crypto step by step.
-
-1️⃣ Learn
-2️⃣ Trading
-3️⃣ Risk
-4️⃣ Market
-5️⃣ Price
-6️⃣ Charts
-7️⃣ Altcoins
-8️⃣ Staking
-9️⃣ Portfolio
-🔟 News
-🧠 AI Assistant
+                    send(chat,
 """
+🤖 <b>Crypto AI Assistant</b>
 
-                    send(chat,welcome,main_menu)
+Welcome to your complete cryptocurrency learning and market assistant.
 
-                # LANGUAGE
-                elif text=="🌍 Language":
-                    send(chat,"Choose language:",language_menu)
+Inside this bot you can:
 
-                elif text=="🇬🇧 English":
-                    languages[chat]="en"
-                    send(chat,"Language set to English",main_menu)
+📚 Learn how cryptocurrency and blockchain work  
+📈 Discover trading strategies used by professionals  
+⚠ Understand risk management techniques  
+📊 Study market trends and cycles  
+💰 Check live cryptocurrency prices  
+📉 Open real trading charts  
+🌕 Explore altcoins and ecosystems  
+🔒 Learn how staking works  
+💼 Build a diversified portfolio  
+📰 Read the latest crypto news  
+🧠 Ask questions to the AI assistant
 
-                elif text=="🇫🇷 Français":
-                    languages[chat]="fr"
-                    send(chat,"Langue définie sur Français",main_menu)
+Select a section below to start your crypto journey.
+""",
+main_menu)
 
-                elif text=="🇪🇸 Español":
-                    languages[chat]="es"
-                    send(chat,"Idioma configurado",main_menu)
+# LEARN
 
-                # LEARN
-                elif text=="1️⃣ 📚 Learn":
+                elif text=="📚 Learn":
 
                     send(chat,
 """
-📚 WHAT IS CRYPTO?
+📚 <b>Crypto Learning Center</b>
 
-Cryptocurrency is digital money secured by blockchain technology.
+This section explains the fundamentals of cryptocurrency and blockchain technology.
 
-Advantages:
-• decentralized
-• transparent
-• global
-• secure
+You will learn how digital currencies work and why they are transforming global finance.
 """,
-                    back_menu)
+learn_menu)
 
-                # TRADING
-                elif text=="2️⃣ 📈 Trading":
-                    send(chat,"Trading education:",trading_menu)
-
-                elif text=="1️⃣ Day Trading":
+                elif text=="What is Crypto":
 
                     send(chat,
 """
-📈 DAY TRADING
+Cryptocurrency is a digital currency secured by cryptography.
 
-Buying and selling within the same day.
+It runs on decentralized blockchain networks instead of central banks.
+
+Key advantages:
+
+• global access
+• transparency
+• decentralization
+• security
 """,
-                    back_menu)
+back_menu)
 
-                elif text=="2️⃣ Swing Trading":
+                elif text=="Blockchain":
 
                     send(chat,
 """
-📊 SWING TRADING
+Blockchain is a distributed digital ledger that records transactions across many computers.
 
-Holding trades for days or weeks.
+Each block stores verified transactions and connects to the previous block creating a secure chain.
 """,
-                    back_menu)
+back_menu)
 
-                elif text=="3️⃣ Scalping":
+                elif text=="Bitcoin":
 
                     send(chat,
 """
-⚡ SCALPING
+Bitcoin is the first cryptocurrency created in 2009.
 
-Very short trades lasting seconds.
+It allows peer-to-peer payments without banks and has a maximum supply of 21 million coins.
 """,
-                    back_menu)
+back_menu)
 
-                elif text=="4️⃣ Long-term Investing":
+                elif text=="Wallets":
 
                     send(chat,
 """
-🪙 LONG TERM INVESTING
+Crypto wallets store private keys that allow you to access your cryptocurrencies.
 
-Holding crypto for months or years.
+Types:
+
+• hot wallets
+• cold wallets
 """,
-                    back_menu)
+back_menu)
 
-                # RISK
-                elif text=="3️⃣ ⚠ Risk":
+                elif text=="DeFi":
 
                     send(chat,
 """
-⚠ RISK MANAGEMENT
+DeFi stands for Decentralized Finance.
 
-Never risk more than 2% per trade.
-Use stop-loss orders.
+It provides financial services like lending, borrowing and trading without banks.
 """,
-                    back_menu)
+back_menu)
 
-                # MARKET
-                elif text=="4️⃣ 📊 Market":
+# TRADING
+
+                elif text=="📈 Trading":
 
                     send(chat,
 """
-📊 MARKET CYCLES
+📈 <b>Crypto Trading</b>
 
-Accumulation
-Uptrend
-Distribution
-Downtrend
+Trading involves buying and selling cryptocurrencies to profit from price movements.
 """,
-                    back_menu)
+trading_menu)
 
-                # PRICE
-                elif text=="5️⃣ 💰 Price":
+                elif text=="Spot Trading":
+
+                    send(chat,"Spot trading means buying real crypto assets instantly.",back_menu)
+
+                elif text=="Futures Trading":
+
+                    send(chat,"Futures trading allows speculation on future prices using leverage.",back_menu)
+
+                elif text=="Technical Analysis":
+
+                    send(chat,"Technical analysis studies price charts and indicators.",back_menu)
+
+                elif text=="Trading Strategies":
+
+                    send(chat,"Strategies include day trading, swing trading and scalping.",back_menu)
+
+# RISK
+
+                elif text=="⚠ Risk":
+
+                    send(chat,
+"""
+⚠ <b>Risk Management</b>
+
+Managing risk protects your trading capital.
+""",
+risk_menu)
+
+                elif text=="Stop Loss":
+
+                    send(chat,"A stop loss automatically closes a trade to limit losses.",back_menu)
+
+                elif text=="Risk Reward":
+
+                    send(chat,"Risk reward ratio compares potential profit vs potential loss.",back_menu)
+
+                elif text=="Position Size":
+
+                    send(chat,"Position sizing determines how much capital is used per trade.",back_menu)
+
+# MARKET
+
+                elif text=="📊 Market":
+
+                    send(chat,
+"""
+📊 <b>Crypto Market Cycles</b>
+
+Markets move through repeating cycles influenced by supply and demand.
+""",
+market_menu)
+
+                elif text=="Bull Market":
+
+                    send(chat,"A bull market is a period of rising prices and optimism.",back_menu)
+
+                elif text=="Bear Market":
+
+                    send(chat,"A bear market is a prolonged decline in prices.",back_menu)
+
+                elif text=="Market Cycle":
+
+                    send(chat,"Cycles include accumulation, uptrend, distribution and downtrend.",back_menu)
+
+# PRICE
+
+                elif text=="💰 Price":
                     send(chat,"Choose coin:",price_menu)
 
                 elif text=="BTC":
-                    send(chat,f"Bitcoin: ${price('bitcoin')}")
+                    send(chat,f"Bitcoin price: ${price('bitcoin')}")
 
                 elif text=="ETH":
-                    send(chat,f"Ethereum: ${price('ethereum')}")
+                    send(chat,f"Ethereum price: ${price('ethereum')}")
 
                 elif text=="BNB":
-                    send(chat,f"BNB: ${price('binancecoin')}")
+                    send(chat,f"BNB price: ${price('binancecoin')}")
 
                 elif text=="SOL":
-                    send(chat,f"Solana: ${price('solana')}")
+                    send(chat,f"Solana price: ${price('solana')}")
 
-                # CHARTS
-                elif text=="6️⃣ 📊 Charts":
-                    send(chat,"Choose chart:",chart_menu)
+# CHARTS
+
+                elif text=="📉 Charts":
+                    send(chat,"Open chart:",chart_menu)
 
                 elif text=="BTC Chart":
                     send(chat,"https://www.tradingview.com/chart/?symbol=BINANCE:BTCUSDT")
@@ -348,48 +452,70 @@ Downtrend
                 elif text=="ETH Chart":
                     send(chat,"https://www.tradingview.com/chart/?symbol=BINANCE:ETHUSDT")
 
-                # ALTCOINS
-                elif text=="7️⃣ 🌕 Altcoins":
+                elif text=="BNB Chart":
+                    send(chat,"https://www.tradingview.com/chart/?symbol=BINANCE:BNBUSDT")
 
-                    send(chat,
-"""
-Altcoins = cryptocurrencies other than Bitcoin.
+                elif text=="SOL Chart":
+                    send(chat,"https://www.tradingview.com/chart/?symbol=BINANCE:SOLUSDT")
 
-Examples:
-Ethereum
-Solana
-Cardano
-""",
-                    back_menu)
+# ALTCOINS
 
-                # STAKING
-                elif text=="8️⃣ 🔒 Staking":
+                elif text=="🌕 Altcoins":
+                    send(chat,"Altcoins are cryptocurrencies other than Bitcoin.",alt_menu)
 
-                    send(chat,
-"""
-Staking allows earning rewards by locking crypto.
-""",
-                    back_menu)
+                elif text=="Ethereum":
+                    send(chat,"Ethereum enables smart contracts and decentralized apps.",back_menu)
 
-                # PORTFOLIO
-                elif text=="9️⃣ 💼 Portfolio":
+                elif text=="Solana":
+                    send(chat,"Solana is a high-speed blockchain with low transaction fees.",back_menu)
 
-                    send(chat,
-"""
-Example portfolio:
+                elif text=="Cardano":
+                    send(chat,"Cardano focuses on research-driven blockchain development.",back_menu)
 
-50% Bitcoin
-25% Ethereum
-15% Altcoins
-10% Stablecoins
-""",
-                    back_menu)
+# STAKING
 
-                # NEWS
-                elif text=="🔟 📰 News":
-                    send(chat,crypto_news(),back_menu)
+                elif text=="🔒 Staking":
+                    send(chat,"Learn how staking works.",staking_menu)
 
-                # AI
+                elif text=="What is Staking":
+                    send(chat,"Staking locks crypto to support network security.",back_menu)
+
+                elif text=="Staking Rewards":
+                    send(chat,"Participants earn rewards for validating transactions.",back_menu)
+
+                elif text=="Staking Risks":
+                    send(chat,"Risks include price volatility and lock periods.",back_menu)
+
+# PORTFOLIO
+
+                elif text=="💼 Portfolio":
+                    send(chat,"Portfolio management basics.",portfolio_menu)
+
+                elif text=="Diversification":
+                    send(chat,"Diversification spreads investment across assets.",back_menu)
+
+                elif text=="Long Term Strategy":
+                    send(chat,"Long term investors hold assets for years.",back_menu)
+
+                elif text=="Portfolio Example":
+                    send(chat,"Example: 50% BTC, 30% ETH, 20% Altcoins.",back_menu)
+
+# NEWS
+
+                elif text=="📰 News":
+                    send(chat,"Choose category:",news_menu)
+
+                elif text=="Bitcoin News":
+                    send(chat,bitcoin_news())
+
+                elif text=="Market News":
+                    send(chat,market_news())
+
+                elif text=="Regulation News":
+                    send(chat,regulation_news())
+
+# AI
+
                 elif text=="🧠 AI Assistant":
 
                     ai_mode[chat]=True
@@ -404,23 +530,20 @@ Example portfolio:
 
                     if ai_mode.get(chat):
 
-                        reply=llama_ai(text)
-                        send(chat,reply)
+                        send(chat,ai_answer(text))
 
                     else:
 
-                        send(chat,"Choose an option.",main_menu)
+                        send(chat,"Choose option from menu.",main_menu)
 
         time.sleep(1)
 
-# =========================
-# START BOT
-# =========================
+# START
 
 if __name__=="__main__":
 
-    bot_thread=threading.Thread(target=run_bot)
-    bot_thread.start()
+    t=threading.Thread(target=run)
+    t.start()
 
     port=int(os.environ.get("PORT",10000))
     app.run(host="0.0.0.0",port=port)
