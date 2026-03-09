@@ -1,6 +1,7 @@
 import requests
 import time
 import os
+import threading
 from flask import Flask
 
 TOKEN = os.environ.get("BOT_TOKEN")
@@ -86,7 +87,10 @@ def price(coin):
 
         data = r.json()
 
-        return data.get(coin,{}).get("usd","Unavailable")
+        if coin in data:
+            return data[coin]["usd"]
+
+        return "Unavailable"
 
     except:
         return "Unavailable"
@@ -116,9 +120,12 @@ def crypto_news():
         return "News unavailable."
 
 
-# LLAMA AI
+# AI
 
 def llama_ai(question):
+
+    if not LLAMA_API_KEY:
+        return "AI unavailable."
 
     headers = {
         "Authorization": f"Bearer {LLAMA_API_KEY}",
@@ -128,7 +135,7 @@ def llama_ai(question):
     data = {
         "model":"meta-llama-3.3-70b-instruct",
         "messages":[
-            {"role":"system","content":"You are a crypto trading assistant."},
+            {"role":"system","content":"You are a crypto assistant."},
             {"role":"user","content":question}
         ]
     }
@@ -144,16 +151,16 @@ def llama_ai(question):
 
         result = r.json()
 
-        return result["choices"][0]["message"]["content"]
-
-    except Exception as e:
-
-        print("LLAMA ERROR:",e)
+        if "choices" in result:
+            return result["choices"][0]["message"]["content"]
 
         return "AI unavailable."
 
+    except:
+        return "AI unavailable."
 
-# TELEGRAM UPDATES
+
+# TELEGRAM
 
 def get_updates(offset):
 
@@ -167,9 +174,7 @@ def get_updates(offset):
 
         return r.json()
 
-    except Exception as e:
-
-        print("Update error:",e)
+    except:
         return {}
 
 
@@ -177,9 +182,8 @@ def get_updates(offset):
 
 def run_bot():
 
-    print("Bot started")
-
     offset = None
+    ai_mode = {}
 
     while True:
 
@@ -207,40 +211,38 @@ def run_bot():
 
             if text == "/start":
 
-                send(chat,
-                "🤖 Welcome to your Crypto AI Assistant",
-                main_menu)
+                send(chat,"🤖 Welcome to your Crypto AI Assistant",main_menu)
 
 
-            elif "Learn" in text:
+            elif text == "📚 Learn":
 
                 send(chat,
                 "📚 Cryptocurrency is digital money powered by blockchain.",
                 back_menu)
 
 
-            elif "Trading" in text:
+            elif text == "📈 Trading":
 
                 send(chat,
                 "📈 Trading means buying and selling crypto to profit.",
                 back_menu)
 
 
-            elif "Risk" in text:
+            elif text == "⚠ Risk":
 
                 send(chat,
                 "⚠ Never risk more than 2% of capital per trade.",
                 back_menu)
 
 
-            elif "Market" in text:
+            elif text == "📊 Market":
 
                 send(chat,
                 "📊 Market cycles: Accumulation → Uptrend → Distribution → Downtrend",
                 back_menu)
 
 
-            elif "Price" in text:
+            elif text == "💰 Price":
 
                 send(chat,"Choose a coin:",price_menu)
 
@@ -265,76 +267,85 @@ def run_bot():
                 send(chat,f"BNB price: ${price('binancecoin')}")
 
 
-            elif "Charts" in text:
+            elif text == "📊 Charts":
 
                 send(chat,"Choose chart:",chart_menu)
 
 
-            elif "BTC Chart" in text:
+            elif text == "BTC Chart":
 
                 send(chat,"https://www.tradingview.com/chart/?symbol=BINANCE:BTCUSDT")
 
 
-            elif "ETH Chart" in text:
+            elif text == "ETH Chart":
 
                 send(chat,"https://www.tradingview.com/chart/?symbol=BINANCE:ETHUSDT")
 
 
-            elif "SOL Chart" in text:
+            elif text == "SOL Chart":
 
                 send(chat,"https://www.tradingview.com/chart/?symbol=BINANCE:SOLUSDT")
 
 
-            elif "BNB Chart" in text:
+            elif text == "BNB Chart":
 
                 send(chat,"https://www.tradingview.com/chart/?symbol=BINANCE:BNBUSDT")
 
 
-            elif "Altcoins" in text:
+            elif text == "🌕 Altcoins":
 
                 send(chat,"🌕 Altcoins are cryptocurrencies other than Bitcoin.",back_menu)
 
 
-            elif "Staking" in text:
+            elif text == "🔒 Staking":
 
-                send(chat,"🔒 Staking allows earning rewards by locking crypto.",back_menu)
-
-
-            elif "Portfolio" in text:
-
-                send(chat,"💼 Example Portfolio\n50% BTC\n25% ETH\n15% Altcoins\n10% Stablecoins",back_menu)
+                send(chat,
+                "🔒 Staking allows earning rewards by locking crypto in a network.",
+                back_menu)
 
 
-            elif "News" in text:
+            elif text == "💼 Portfolio":
+
+                send(chat,
+                "💼 Example Portfolio\n50% BTC\n25% ETH\n15% Altcoins\n10% Stablecoins",
+                back_menu)
+
+
+            elif text == "📰 News":
 
                 send(chat,crypto_news(),back_menu)
 
 
-            elif "Back" in text:
+            elif text == "🧠 AI Assistant":
 
+                ai_mode[chat] = True
+                send(chat,"Ask any crypto question.",back_menu)
+
+
+            elif text == "⬅ Back":
+
+                ai_mode[chat] = False
                 send(chat,"Main menu",main_menu)
 
 
             else:
 
-                reply = llama_ai(text)
-
-                send(chat,reply)
+                if ai_mode.get(chat):
+                    reply = llama_ai(text)
+                    send(chat,reply)
+                else:
+                    send(chat,"Choose an option.",main_menu)
 
         time.sleep(1)
 
 
 # START BOT
 
-import threading
-
 if __name__ == "__main__":
-
-    print("Starting Crypto AI Bot...")
 
     bot_thread = threading.Thread(target=run_bot)
     bot_thread.start()
 
-    port = int(os.environ.get("PORT", 10000))
+    port = int(os.environ.get("PORT",10000))
 
-    app.run(host="0.0.0.0", port=port)
+    app.run(host="0.0.0.0",port=port)
