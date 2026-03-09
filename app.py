@@ -18,6 +18,22 @@ def home():
 
 
 # =========================
+# LANGUAGE SYSTEM (ADDED)
+# =========================
+
+languages={}
+
+language_menu={
+"keyboard":[
+["🇬🇧 English","🇫🇷 Français"],
+["🇪🇸 Español"],
+["⬅ Back"]
+],
+"resize_keyboard":True
+}
+
+
+# =========================
 # MAIN MENU
 # =========================
 
@@ -28,7 +44,24 @@ main_menu = {
 ["5️⃣ 💰 Price","6️⃣ 📊 Charts"],
 ["7️⃣ 🌕 Altcoins","8️⃣ 🔒 Staking"],
 ["9️⃣ 💼 Portfolio","🔟 📰 News"],
-["🧠 AI Assistant"]
+["🧠 AI Assistant"],
+["🌍 Language"]
+],
+"resize_keyboard":True
+}
+
+
+# =========================
+# TRADING SUBMENU (ADDED)
+# =========================
+
+trading_menu={
+"keyboard":[
+["1️⃣ Day Trading"],
+["2️⃣ Swing Trading"],
+["3️⃣ Scalping"],
+["4️⃣ Long-term Investing"],
+["⬅ Back"]
 ],
 "resize_keyboard":True
 }
@@ -248,23 +281,29 @@ def run_bot():
 🤖 Welcome to the Crypto AI Assistant
 
 This bot helps you learn cryptocurrency step by step.
-
-Menu guide:
-
-1️⃣ Learn → Understand crypto basics
-2️⃣ Trading → Learn how trading works
-3️⃣ Risk → Risk management rules
-4️⃣ Market → Market cycle explanation
-5️⃣ Price → Live crypto prices
-6️⃣ Charts → TradingView charts
-7️⃣ Altcoins → What altcoins are
-8️⃣ Staking → Earn rewards with crypto
-9️⃣ Portfolio → Example crypto portfolio
-🔟 News → Latest crypto news
-🧠 AI Assistant → Ask any crypto question
 """
 
                 send(chat,welcome,main_menu)
+
+
+            # =====================
+            # LANGUAGE (ADDED)
+            # =====================
+
+            elif text=="🌍 Language":
+                send(chat,"Choose your language:",language_menu)
+
+            elif text=="🇬🇧 English":
+                languages[chat]="en"
+                send(chat,"Language set to English",main_menu)
+
+            elif text=="🇫🇷 Français":
+                languages[chat]="fr"
+                send(chat,"Langue définie sur Français",main_menu)
+
+            elif text=="🇪🇸 Español":
+                languages[chat]="es"
+                send(chat,"Idioma configurado",main_menu)
 
 
             # =====================
@@ -280,15 +319,6 @@ Menu guide:
 Cryptocurrency is a digital form of money that exists on the internet.
 
 Unlike traditional money controlled by banks, cryptocurrencies are powered by a technology called blockchain.
-
-Blockchain is a decentralized ledger that records every transaction securely.
-
-Key advantages:
-
-• No central authority  
-• Transparent transactions  
-• Global accessibility  
-• High security through cryptography
 """,
                 back_menu)
 
@@ -298,22 +328,72 @@ Key advantages:
             # =====================
 
             elif text=="2️⃣ 📈 Trading":
+                send(chat,"📈 Trading education menu:",trading_menu)
+
+
+            # =====================
+            # TRADING SUBMENUS (ADDED)
+            # =====================
+
+            elif text=="1️⃣ Day Trading":
 
                 send(chat,
 """
-📈 WHAT IS CRYPTO TRADING?
+📈 DAY TRADING
 
-Crypto trading is the act of buying and selling cryptocurrencies in order to make a profit.
+Buying and selling crypto within the same day.
 
-Traders analyze price movements using charts and market data.
+Goal: profit from short-term price movements.
 
-Common trading styles include:
+Requires:
+• constant monitoring
+• technical analysis
+• fast decisions
+""",
+                back_menu)
 
-• Day trading
-• Swing trading
-• Long-term investing
 
-Successful trading requires discipline, strategy, and risk management.
+            elif text=="2️⃣ Swing Trading":
+
+                send(chat,
+"""
+📊 SWING TRADING
+
+Holding trades for several days or weeks.
+
+Goal: capture medium-term trends.
+
+Less stressful than day trading.
+""",
+                back_menu)
+
+
+            elif text=="3️⃣ Scalping":
+
+                send(chat,
+"""
+⚡ SCALPING
+
+Ultra-short trading style.
+
+Trades last seconds or minutes.
+
+Professional traders use it to capture very small moves repeatedly.
+""",
+                back_menu)
+
+
+            elif text=="4️⃣ Long-term Investing":
+
+                send(chat,
+"""
+🪙 LONG-TERM INVESTING
+
+Holding crypto for months or years.
+
+Investors believe the value will grow over time.
+
+Example strategy: Bitcoin long-term holding.
 """,
                 back_menu)
 
@@ -328,16 +408,9 @@ Successful trading requires discipline, strategy, and risk management.
 """
 ⚠ RISK MANAGEMENT
 
-Risk management is the most important rule in trading.
-
-Golden rules:
-
-• Never risk more than 2% of your capital on one trade.
-• Always use stop-loss orders.
-• Never trade emotionally.
-• Diversify your investments.
-
-Protecting your capital is more important than chasing profits.
+Never risk more than 2% per trade.
+Always use stop-loss.
+Never trade emotionally.
 """,
                 back_menu)
 
@@ -352,21 +425,10 @@ Protecting your capital is more important than chasing profits.
 """
 📊 CRYPTO MARKET CYCLES
 
-Markets move in cycles:
-
-1️⃣ Accumulation  
-Smart investors slowly buy.
-
-2️⃣ Uptrend  
-Prices start rising quickly.
-
-3️⃣ Distribution  
-Early investors begin selling.
-
-4️⃣ Downtrend  
-Prices fall and market resets.
-
-Understanding cycles helps traders avoid buying at the top.
+1 Accumulation
+2 Uptrend
+3 Distribution
+4 Downtrend
 """,
                 back_menu)
 
@@ -376,7 +438,6 @@ Understanding cycles helps traders avoid buying at the top.
             # =====================
 
             elif text=="5️⃣ 💰 Price":
-
                 send(chat,"Choose a coin:",price_menu)
 
 
@@ -421,18 +482,13 @@ Understanding cycles helps traders avoid buying at the top.
 
                 send(chat,
 """
-🌕 WHAT ARE ALTCOINS?
+🌕 Altcoins are cryptocurrencies other than Bitcoin.
 
-Altcoins are all cryptocurrencies other than Bitcoin.
-
-Examples include:
-
-• Ethereum
-• Solana
-• Cardano
-• Avalanche
-
-Many altcoins focus on new technologies like smart contracts, decentralized finance (DeFi), and Web3 applications.
+Examples:
+Ethereum
+Solana
+Cardano
+Avalanche
 """,
                 back_menu)
 
@@ -445,17 +501,7 @@ Many altcoins focus on new technologies like smart contracts, decentralized fina
 
                 send(chat,
 """
-🔒 WHAT IS STAKING?
-
-Staking allows crypto holders to earn rewards by locking their coins to support a blockchain network.
-
-Benefits:
-
-• Passive income
-• Network security
-• Long-term investment strategy
-
-Many blockchains like Ethereum and Solana support staking.
+🔒 Staking allows holders to earn rewards by locking coins.
 """,
                 back_menu)
 
@@ -468,16 +514,12 @@ Many blockchains like Ethereum and Solana support staking.
 
                 send(chat,
 """
-💼 EXAMPLE CRYPTO PORTFOLIO
+💼 Example portfolio:
 
-A balanced portfolio could look like:
-
-50% Bitcoin  
-25% Ethereum  
-15% Altcoins  
+50% Bitcoin
+25% Ethereum
+15% Altcoins
 10% Stablecoins
-
-Diversification helps reduce investment risk.
 """,
                 back_menu)
 
