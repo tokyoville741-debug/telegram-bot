@@ -1,423 +1,262 @@
-from flask import Flask, request
-import requests
 import os
+import requests
+from flask import Flask, request
 
 app = Flask(__name__)
 
-# ==============================
-# CONFIG
-# ==============================
+TOKEN = os.getenv("BOT_TOKEN")
+TELEGRAM_URL = f"https://api.telegram.org/bot{TOKEN}"
 
-GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN") or os.getenv("TELEGRAM_BOT_TOKEN")
+user_state = {}
 
-TELEGRAM_API = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
-GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
+main_menu = [
+    ["📚 Learn", "📈 Trading"],
+    ["⚠️ Risk", "📊 Market"],
+    ["💰 Price", "🧠 AI Analysis"],
+    ["🌕 Altcoins", "🔒 Staking"],
+    ["💼 Portfolio", "📰 News"]
+]
 
+def send_message(chat_id, text, keyboard=None):
 
-# ==============================
-# SEND TELEGRAM MESSAGE
-# ==============================
-
-def send_message(chat_id, text, buttons=None):
-
-    payload = {
+    data = {
         "chat_id": chat_id,
-        "text": text
+        "text": text,
+        "parse_mode": "Markdown"
     }
 
-    if buttons:
-        payload["reply_markup"] = {
-            "keyboard": buttons,
+    if keyboard:
+        data["reply_markup"] = {
+            "keyboard": keyboard,
             "resize_keyboard": True
         }
 
-    try:
-        requests.post(
-            TELEGRAM_API,
-            json=payload,
-            timeout=10
-        )
-    except Exception as e:
-        print("Telegram send error:", e)
+    requests.post(f"{TELEGRAM_URL}/sendMessage", json=data)
 
-
-# ==============================
-# AI FUNCTION
-# ==============================
-
-def ask_ai(user_message):
-
-    headers = {
-        "Authorization": f"Bearer {GROQ_API_KEY}",
-        "Content-Type": "application/json"
-    }
-
-    data = {
-        "model": "llama-3.3-70b-versatile",
-        "messages": [
-            {
-                "role": "system",
-                "content": """You are OpenClaw AI Coach.
-
-You help users understand:
-- cryptocurrency
-- trading
-- blockchain
-- Binance ecosystem
-
-Rules:
-Always respond in English.
-Be concise and educational.
-Never give financial advice.
-Encourage risk management.
-"""
-            },
-            {
-                "role": "user",
-                "content": user_message
-            }
-        ],
-        "max_tokens": 400
-    }
-
-    response = requests.post(GROQ_URL, headers=headers, json=data, timeout=20)
-    result = response.json()
-
-    return result["choices"][0]["message"]["content"]
-
-
-# ==============================
-# HOME PAGE
-# ==============================
 
 @app.route("/")
 def home():
     return "OpenClaw AI Coach is running 🚀"
 
 
-# ==============================
-# MAIN MENU
-# ==============================
-
-def main_menu(chat_id):
-
-    text = """
-🤖 OpenClaw AI Coach
-
-Choose a section:
-
-1️⃣ Learn
-2️⃣ Trading
-3️⃣ Risk
-4️⃣ Market
-5️⃣ Price
-6️⃣ AI Analysis
-7️⃣ Altcoins
-8️⃣ Staking
-9️⃣ Portfolio
-🔟 News
-"""
-
-    buttons = [
-        ["📚 Learn", "📈 Trading"],
-        ["⚠️ Risk", "📊 Market"],
-        ["💰 Price", "🧠 AI Analysis"],
-        ["🪙 Altcoins", "🔒 Staking"],
-        ["💼 Portfolio", "📰 News"]
-    ]
-
-    send_message(chat_id, text, buttons)
-
-
-# ==============================
-# TELEGRAM WEBHOOK
-# ==============================
-
 @app.route("/webhook", methods=["POST"])
 def webhook():
 
-    data = request.get_json()
+    data = request.json
 
     if "message" not in data:
         return "ok"
 
     chat_id = data["message"]["chat"]["id"]
-    text = data["message"].get("text", "")
+    text = data["message"].get("text","")
+
+    if chat_id not in user_state:
+        user_state[chat_id] = "main"
 
 
-    # ==========================
-    # BACK BUTTON
-    # ==========================
+# START MENU
 
-    if text == "🔙 Back":
-        main_menu(chat_id)
-        return "ok"
+    if text in ["/start","Menu","menu"]:
 
-
-    # ==========================
-    # BUTTON SHORTCUTS
-    # ==========================
-
-    if text == "📚 Learn":
-        text = "/learn"
-
-    elif text == "📈 Trading":
-        text = "/trading"
-
-    elif text == "⚠️ Risk":
-        text = "/risk"
-
-    elif text == "📊 Market":
-        text = "/market"
-
-    elif text == "💰 Price":
-        text = "/prices"
-
-    elif text == "🧠 AI Analysis":
-        text = "/analyze BTC"
-
-    elif text == "🪙 Altcoins":
-        text = "/altcoins"
-
-    elif text == "🔒 Staking":
-        text = "/staking"
-
-    elif text == "💼 Portfolio":
-        text = "/portfolio"
-
-    elif text == "📰 News":
-        text = "/news"
-
-
-    # ==========================
-    # NUMBER SHORTCUTS
-    # ==========================
-
-    if text == "1":
-        text = "/learn"
-    elif text == "2":
-        text = "/trading"
-    elif text == "3":
-        text = "/risk"
-    elif text == "4":
-        text = "/market"
-    elif text == "5":
-        text = "/prices"
-    elif text == "6":
-        text = "/analyze BTC"
-    elif text == "7":
-        text = "/altcoins"
-    elif text == "8":
-        text = "/staking"
-    elif text == "9":
-        text = "/portfolio"
-    elif text == "10":
-        text = "/news"
-
-
-    # ==========================
-    # COMMANDS
-    # ==========================
-
-    if text == "/start":
-        main_menu(chat_id)
-        return "ok"
-
-
-    elif text == "/learn":
+        user_state[chat_id] = "main"
 
         reply = """
-📚 Crypto Learning Hub
+🤖 *OpenClaw AI Coach*
 
-1️⃣ What is Blockchain
-2️⃣ What is Bitcoin
-3️⃣ What is Crypto Trading
-4️⃣ Spot vs Futures
+1️⃣ Learn  
+2️⃣ Trading  
+3️⃣ Risk  
+4️⃣ Market  
+5️⃣ Price  
+6️⃣ AI Analysis  
+7️⃣ Altcoins  
+8️⃣ Staking  
+9️⃣ Portfolio  
+🔟 News
+"""
+
+        send_message(chat_id, reply, main_menu)
+
+
+# LEARN MENU
+
+    elif text in ["1","📚 Learn"] and user_state[chat_id] == "main":
+
+        user_state[chat_id] = "learn"
+
+        reply = """
+📚 *Crypto Learning Hub*
+
+1️⃣ What is Blockchain  
+2️⃣ What is Bitcoin  
+3️⃣ What is Crypto Trading  
+4️⃣ Spot vs Futures  
 5️⃣ Risk Management
 """
 
-        buttons = [["🔙 Back"]]
-        send_message(chat_id, reply, buttons)
-        return "ok"
+        send_message(chat_id, reply, [["🔙 Back"]])
 
 
-    elif text == "/trading":
+# LEARN EXPLANATIONS
+
+    elif text == "1" and user_state[chat_id] == "learn":
 
         reply = """
-📈 Trading Basics
+🔗 *Blockchain*
 
-1️⃣ Support & Resistance
-2️⃣ Market Trends
-3️⃣ Moving Averages
-4️⃣ RSI Indicator
+A decentralized digital ledger that records
+transactions across multiple computers.
+
+Key features
+• transparency  
+• security  
+• decentralization
+"""
+
+        send_message(chat_id, reply, [["🔙 Back"]])
+
+
+    elif text == "2" and user_state[chat_id] == "learn":
+
+        reply = """
+₿ *Bitcoin*
+
+The first cryptocurrency created in 2009
+by Satoshi Nakamoto.
+
+Purpose
+• peer to peer money  
+• decentralized payments
+"""
+
+        send_message(chat_id, reply, [["🔙 Back"]])
+
+
+# TRADING MENU
+
+    elif text in ["2","📈 Trading"] and user_state[chat_id] == "main":
+
+        user_state[chat_id] = "trading"
+
+        reply = """
+📈 *Trading Basics*
+
+1️⃣ Support & Resistance  
+2️⃣ Market Trends  
+3️⃣ Moving Averages  
+4️⃣ RSI Indicator  
 5️⃣ Market Cycles
 """
 
-        buttons = [["🔙 Back"]]
-        send_message(chat_id, reply, buttons)
-        return "ok"
+        send_message(chat_id, reply, [["🔙 Back"]])
 
 
-    elif text == "/risk":
+# TRADING EXPLANATION
 
-        reply = """
-⚠️ Risk Management
-
-1️⃣ Use stop losses
-2️⃣ Manage position size
-3️⃣ Control emotions
-4️⃣ Diversify assets
-"""
-
-        buttons = [["🔙 Back"]]
-        send_message(chat_id, reply, buttons)
-        return "ok"
-
-
-    elif text == "/market":
+    elif text == "1" and user_state[chat_id] == "trading":
 
         reply = """
-📊 Market Cycles
+📊 *Support & Resistance*
 
-Bull market → optimism
-Bear market → fear
+Support = price level where buyers appear.
 
-Focus on:
-trend + patience + discipline
+Resistance = price level where sellers appear.
+
+Traders use these zones to plan
+entries and exits.
 """
 
-        buttons = [["🔙 Back"]]
-        send_message(chat_id, reply, buttons)
-        return "ok"
+        send_message(chat_id, reply, [["🔙 Back"]])
 
 
-    elif text == "/portfolio":
+# RISK MENU
+
+    elif text in ["3","⚠️ Risk"] and user_state[chat_id] == "main":
+
+        user_state[chat_id] = "risk"
 
         reply = """
-💼 Portfolio Management
+⚠️ *Risk Management*
 
-Diversify assets
-Rebalance regularly
-
-Example:
-
-BTC 40%
-ETH 30%
-Alts 20%
-Stablecoins 10%
+1️⃣ Position Sizing  
+2️⃣ Stop Loss  
+3️⃣ Diversification  
+4️⃣ Emotional Control  
+5️⃣ Risk Reward
 """
 
-        buttons = [["🔙 Back"]]
-        send_message(chat_id, reply, buttons)
-        return "ok"
+        send_message(chat_id, reply, [["🔙 Back"]])
 
 
-    elif text == "/prices":
+# MARKET MENU
 
-        coins = ["BTCUSDT", "ETHUSDT", "BNBUSDT", "SOLUSDT"]
+    elif text in ["4","📊 Market"] and user_state[chat_id] == "main":
 
-        prices = []
-
-        for coin in coins:
-            try:
-                url = f"https://api.binance.com/api/v3/ticker/price?symbol={coin}"
-                r = requests.get(url)
-                price = r.json()["price"]
-
-                prices.append(f"{coin.replace('USDT','')} : ${float(price):,.2f}")
-
-            except:
-                prices.append(f"{coin} error")
-
-        reply = "💰 Live Crypto Prices\n\n" + "\n".join(prices)
-
-        buttons = [["🔙 Back"]]
-        send_message(chat_id, reply, buttons)
-        return "ok"
-
-
-    elif text.startswith("/analyze"):
-
-        coin = text.replace("/analyze", "").strip()
-
-        if coin == "":
-            coin = "BTC"
-
-        reply = ask_ai(f"Give a short crypto market analysis for {coin}")
-
-        buttons = [["🔙 Back"]]
-        send_message(chat_id, reply, buttons)
-        return "ok"
-
-
-    elif text == "/news":
+        user_state[chat_id] = "market"
 
         reply = """
-📰 Crypto News
+📊 *Market Analysis*
 
-1️⃣ CoinDesk
-2️⃣ CoinTelegraph
-3️⃣ Binance Research
+1️⃣ Bull Market  
+2️⃣ Bear Market  
+3️⃣ Market Liquidity  
+4️⃣ Market Volatility  
+5️⃣ Market Cycles
 """
 
-        buttons = [["🔙 Back"]]
-        send_message(chat_id, reply, buttons)
-        return "ok"
+        send_message(chat_id, reply, [["🔙 Back"]])
 
 
-    elif text == "/altcoins":
+# PRICE
 
-        reply = """
-🪙 Altcoin Guide
+    elif text in ["5","💰 Price"]:
 
-1️⃣ Ethereum
-2️⃣ Solana
-3️⃣ Cardano
-4️⃣ Avalanche
+        url = "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana&vs_currencies=usd"
+
+        r = requests.get(url).json()
+
+        btc = r["bitcoin"]["usd"]
+        eth = r["ethereum"]["usd"]
+        sol = r["solana"]["usd"]
+
+        reply = f"""
+💰 *Live Crypto Prices*
+
+BTC : ${btc}  
+ETH : ${eth}  
+SOL : ${sol}
 """
 
-        buttons = [["🔙 Back"]]
-        send_message(chat_id, reply, buttons)
-        return "ok"
+        send_message(chat_id, reply, [["🔙 Back"]])
 
 
-    elif text == "/staking":
+# BACK BUTTON
 
-        reply = """
-🔒 Staking Guide
+    elif text == "🔙 Back":
 
-1️⃣ ETH
-2️⃣ ADA
-3️⃣ SOL
-"""
+        user_state[chat_id] = "main"
 
-        buttons = [["🔙 Back"]]
-        send_message(chat_id, reply, buttons)
-        return "ok"
+        send_message(chat_id, "Main Menu", main_menu)
 
+
+# DEFAULT AI MESSAGE
 
     else:
 
-        try:
-            reply = ask_ai(text)
+        reply = """
+🧠 Ask me anything about crypto.
 
-        except Exception as e:
-            print("AI error:", e)
-            reply = "AI error. Please try again."
+Example
+• What is Bitcoin
+• How to trade
+• Crypto market analysis
+"""
 
-        buttons = [["🔙 Back"]]
-        send_message(chat_id, reply, buttons)
+        send_message(chat_id, reply, main_menu)
+
 
     return "ok"
 
 
-# ==============================
-# SERVER
-# ==============================
-
 if __name__ == "__main__":
-
-    port = int(os.environ.get("PORT", 10000))
-
-    app.run(host="0.0.0.0", port=port)
+    app.run()
