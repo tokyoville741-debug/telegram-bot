@@ -1,322 +1,109 @@
 import os
+from flask import Flask, request
+import asyncio
 import requests
-from flask import Flask, request, jsonify
+import pandas as pd
+from telegram import Update
+from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
+
+TOKEN = os.getenv("BOT_TOKEN")
 
 app = Flask(__name__)
 
-BOT_TOKEN = os.environ.get("BOT_TOKEN")
+# ================= BINANCE DATA =================
 
-if not BOT_TOKEN:
-    raise ValueError("BOT_TOKEN environment variable not set")
+def get_klines(symbol="BTCUSDT", interval="15m", limit=100):
+    url = f"https://api.binance.com/api/v3/klines?symbol={symbol}&interval={interval}&limit={limit}"
+    data = requests.get(url).json()
 
-TELEGRAM_API = f"https://api.telegram.org/bot{BOT_TOKEN}"
+    df = pd.DataFrame(data, columns=[
+        "time","open","high","low","close","volume",
+        "close_time","qav","num_trades","taker_base_vol",
+        "taker_quote_vol","ignore"
+    ])
 
-user_state = {}
+    df["close"] = df["close"].astype(float)
+    df["high"] = df["high"].astype(float)
+    df["low"] = df["low"].astype(float)
 
-# ---------- SEND MESSAGE ----------
+    return df
 
-def send_message(chat_id, text, keyboard=None):
+# ================= INDICATORS =================
 
-    url = f"{TELEGRAM_API}/sendMessage"
+def ema(series, period):
+    return series.ewm(span=period, adjust=False).mean()
 
-    payload = {
-        "chat_id": chat_id,
-        "text": text,
-        "parse_mode": "Markdown"
-    }
+def rsi(series, period=14):
+    delta = series.diff()
+    gain = (delta.where(delta > 0, 0)).rolling(window=period).mean()
+    loss = (-delta.where(delta < 0, 0)).rolling(window=period).mean()
+    rs = gain / loss
+    return 100 - (100 / (1 + rs))
 
-    if keyboard:
-        payload["reply_markup"] = {
-            "keyboard": keyboard,
-            "resize_keyboard": True
-        }
+# ================= SIGNAL =================
 
-    try:
-        requests.post(url, json=payload, timeout=10)
-    except Exception as e:
-        print("Telegram send error:", e)
+def generate_signal(symbol):
 
+    df = get_klines(symbol)
 
-# ---------- MAIN MENU ----------
+    df["ema9"] = ema(df["close"], 9)
+    df["ema21"] = ema(df["close"], 21)
+    df["rsi"] = rsi(df["close"])
 
-main_menu = [
-    ["1", "2", "3"],
-    ["4", "5", "6"],
-    ["7", "8", "9"],
-    ["10"]
-]
+    last = df.iloc[-1]
 
-back_button = [["⬅ Back"]]
+    if last["ema9"] > last["ema21"] and last["rsi"] < 70:
+        return f"{symbol} BUY signal"
+    elif last["ema9"] < last["ema21"] and last["rsi"] > 30:
+        return f"{symbol} SELL signal"
+    else:
+        return f"{symbol} NO SIGNAL"
 
+# ================= TELEGRAM =================
 
-# ---------- CRYPTO PRICE ----------
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("Bot is running")
 
-def get_crypto_prices():
+async def signal(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
-    try:
+    symbol = "BTCUSDT"
 
-        url = "https://api.coingecko.com/api/v3/simple/price"
+    if context.args:
+        symbol = context.args[0].upper()
 
-        params = {
-            "ids": "bitcoin,ethereum,solana",
-            "vs_currencies": "usd"
-        }
+    result = generate_signal(symbol)
 
-        r = requests.get(url, params=params, timeout=10)
-        data = r.json()
+    await update.message.reply_text(result)
 
-        btc = data["bitcoin"]["usd"]
-        eth = data["ethereum"]["usd"]
-        sol = data["solana"]["usd"]
+# ================= BOT LOOP =================
 
-        return f"""
-💰 *Live Crypto Prices*
+def run_bot():
 
-BTC : ${btc}
-ETH : ${eth}
-SOL : ${sol}
-"""
+    application = ApplicationBuilder().token(TOKEN).build()
 
-    except Exception as e:
-        print("Price API error:", e)
-        return "⚠ Unable to fetch prices."
+    application.add_handler(CommandHandler("start", start))
+    application.add_handler(CommandHandler("signal", signal))
 
+    application.run_polling()
 
-# ---------- HOME ----------
+# ================= WEB SERVER =================
 
 @app.route("/")
 def home():
-    return "OpenClaw Bot Running"
-
-
-# ---------- WEBHOOK ----------
+    return "Bot is running"
 
 @app.route("/webhook", methods=["POST"])
 def webhook():
+    return "ok"
 
-    data = request.get_json()
-
-    if not data:
-        return jsonify({"status": "ok"}), 200
-
-    message = data.get("message")
-
-    if not message:
-        return jsonify({"status": "ok"}), 200
-
-    chat_id = message["chat"]["id"]
-    text = message.get("text", "")
-
-    if not text:
-        return jsonify({"status": "ok"}), 200
-
-
-# ---------- START ----------
-
-    if text in ["/start", "menu", "Menu"]:
-
-        user_state[chat_id] = "main"
-
-        reply = """
-🤖 OpenClaw AI Coach
-
-1️⃣ Learn
-2️⃣ Trading
-3️⃣ Risk
-4️⃣ Market
-5️⃣ Price
-6️⃣ AI Analysis
-7️⃣ Altcoins
-8️⃣ Staking
-9️⃣ Portfolio
-🔟 News
-"""
-
-        send_message(chat_id, reply, main_menu)
-
-
-# ---------- LEARN ----------
-
-    elif text == "1":
-
-        reply = """
-📚 *Crypto Learning Hub*
-
-Learn the fundamentals of crypto:
-
-• What is blockchain  
-• Bitcoin basics  
-• Trading psychology  
-• Market cycles
-"""
-
-        send_message(chat_id, reply, back_button)
-
-
-# ---------- TRADING ----------
-
-    elif text == "2":
-
-        reply = """
-📈 *Trading Strategies*
-
-Popular trading styles:
-
-• Scalping  
-• Day trading  
-• Swing trading  
-• Trend trading
-"""
-
-        send_message(chat_id, reply, back_button)
-
-
-# ---------- RISK ----------
-
-    elif text == "3":
-
-        reply = """
-⚠ *Risk Management*
-
-Golden rules:
-
-• Never risk more than 2%  
-• Always use stop loss  
-• Protect your capital
-"""
-
-        send_message(chat_id, reply, back_button)
-
-
-# ---------- MARKET ----------
-
-    elif text == "4":
-
-        reply = """
-🌍 *Market Analysis*
-
-Understand:
-
-• Bull markets  
-• Bear markets  
-• Market sentiment
-"""
-
-        send_message(chat_id, reply, back_button)
-
-
-# ---------- PRICE ----------
-
-    elif text == "5":
-
-        reply = get_crypto_prices()
-
-        send_message(chat_id, reply, back_button)
-
-
-# ---------- AI ANALYSIS ----------
-
-    elif text == "6":
-
-        reply = """
-🤖 *AI Market Insight*
-
-AI analyzes:
-
-• trend strength  
-• volatility  
-• market sentiment
-"""
-
-        send_message(chat_id, reply, back_button)
-
-
-# ---------- ALTCOINS ----------
-
-    elif text == "7":
-
-        reply = """
-🪙 *Altcoins*
-
-Explore alternative cryptocurrencies beyond Bitcoin.
-"""
-
-        send_message(chat_id, reply, back_button)
-
-
-# ---------- STAKING ----------
-
-    elif text == "8":
-
-        reply = """
-🏦 *Staking*
-
-Earn passive income by staking crypto assets.
-"""
-
-        send_message(chat_id, reply, back_button)
-
-
-# ---------- PORTFOLIO ----------
-
-    elif text == "9":
-
-        reply = """
-📊 *Portfolio Management*
-
-Build a balanced crypto portfolio.
-"""
-
-        send_message(chat_id, reply, back_button)
-
-
-# ---------- NEWS ----------
-
-    elif text == "10":
-
-        reply = """
-📰 *Crypto News*
-
-Stay updated with the latest crypto developments.
-"""
-
-        send_message(chat_id, reply, back_button)
-
-
-# ---------- BACK ----------
-
-    elif text == "⬅ Back":
-
-        user_state[chat_id] = "main"
-
-        reply = """
-🤖 OpenClaw AI Coach
-
-1️⃣ Learn
-2️⃣ Trading
-3️⃣ Risk
-4️⃣ Market
-5️⃣ Price
-6️⃣ AI Analysis
-7️⃣ Altcoins
-8️⃣ Staking
-9️⃣ Portfolio
-🔟 News
-"""
-
-        send_message(chat_id, reply, main_menu)
-
-    return jsonify({"status": "ok"}), 200
-
-
-# ---------- RUN ----------
+# ================= MAIN =================
 
 if __name__ == "__main__":
 
-    port = int(os.environ.get("PORT", 10000))
+    from threading import Thread
 
-    app.run(
-        host="0.0.0.0",
-        port=port,
-        debug=False
-        )
+    bot_thread = Thread(target=run_bot)
+    bot_thread.start()
+
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)
