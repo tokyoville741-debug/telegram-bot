@@ -18,7 +18,7 @@ def home():
 
 
 # =========================
-# LANGUAGE SYSTEM (ADDED)
+# LANGUAGE SYSTEM
 # =========================
 
 languages={}
@@ -52,15 +52,35 @@ main_menu = {
 
 
 # =========================
-# TRADING SUBMENU (ADDED)
+# SUB MENUS
 # =========================
 
 trading_menu={
 "keyboard":[
 ["1️⃣ Day Trading"],
 ["2️⃣ Swing Trading"],
-["3️⃣ Scalping"],
-["4️⃣ Long-term Investing"],
+["3️⃣ Long-term Investing"],
+["⬅ Back"]
+],
+"resize_keyboard":True
+}
+
+market_menu={
+"keyboard":[
+["1️⃣ Accumulation"],
+["2️⃣ Uptrend"],
+["3️⃣ Distribution"],
+["4️⃣ Downtrend"],
+["⬅ Back"]
+],
+"resize_keyboard":True
+}
+
+staking_menu={
+"keyboard":[
+["1️⃣ Passive income"],
+["2️⃣ Network security"],
+["3️⃣ Long-term investment strategy"],
 ["⬅ Back"]
 ],
 "resize_keyboard":True
@@ -82,7 +102,7 @@ price_menu = {
 
 
 # =========================
-# CHART MENU (UNCHANGED)
+# CHART MENU
 # =========================
 
 chart_menu = {
@@ -151,7 +171,7 @@ def price(coin):
 
 
 # =========================
-# NEWS (UNCHANGED)
+# NEWS
 # =========================
 
 def crypto_news():
@@ -271,9 +291,7 @@ def run_bot():
             text=msg["text"].strip()
 
 
-            # =====================
             # START
-            # =====================
 
             if text=="/start":
 
@@ -286,54 +304,20 @@ This bot helps you learn cryptocurrency step by step.
                 send(chat,welcome,main_menu)
 
 
-            # =====================
-            # LANGUAGE (ADDED)
-            # =====================
+            # TRADING
 
-            elif text=="🌍 Language":
-                send(chat,"Choose your language:",language_menu)
-
-            elif text=="🇬🇧 English":
-                languages[chat]="en"
-                send(chat,"Language set to English",main_menu)
-
-            elif text=="🇫🇷 Français":
-                languages[chat]="fr"
-                send(chat,"Langue définie sur Français",main_menu)
-
-            elif text=="🇪🇸 Español":
-                languages[chat]="es"
-                send(chat,"Idioma configurado",main_menu)
-
-
-            # =====================
-            # LEARN
-            # =====================
-
-            elif text=="1️⃣ 📚 Learn":
+            elif text=="2️⃣ 📈 Trading":
 
                 send(chat,
 """
-📚 WHAT IS CRYPTOCURRENCY?
+📈 WHAT IS CRYPTO TRADING?
 
-Cryptocurrency is a digital form of money that exists on the internet.
+Crypto trading is the act of buying and selling cryptocurrencies in order to make a profit.
 
-Unlike traditional money controlled by banks, cryptocurrencies are powered by a technology called blockchain.
+Traders analyze price movements using charts and market data.
 """,
-                back_menu)
+                trading_menu)
 
-
-            # =====================
-            # TRADING
-            # =====================
-
-            elif text=="2️⃣ 📈 Trading":
-                send(chat,"📈 Trading education menu:",trading_menu)
-
-
-            # =====================
-            # TRADING SUBMENUS (ADDED)
-            # =====================
 
             elif text=="1️⃣ Day Trading":
 
@@ -341,14 +325,7 @@ Unlike traditional money controlled by banks, cryptocurrencies are powered by a 
 """
 📈 DAY TRADING
 
-Buying and selling crypto within the same day.
-
-Goal: profit from short-term price movements.
-
-Requires:
-• constant monitoring
-• technical analysis
-• fast decisions
+Buying and selling crypto within the same day to profit from short-term price movements.
 """,
                 back_menu)
 
@@ -359,65 +336,23 @@ Requires:
 """
 📊 SWING TRADING
 
-Holding trades for several days or weeks.
-
-Goal: capture medium-term trends.
-
-Less stressful than day trading.
+Holding trades for several days or weeks to capture market trends.
 """,
                 back_menu)
 
 
-            elif text=="3️⃣ Scalping":
+            elif text=="3️⃣ Long-term Investing":
 
                 send(chat,
 """
-⚡ SCALPING
+🪙 LONG TERM INVESTING
 
-Ultra-short trading style.
-
-Trades last seconds or minutes.
-
-Professional traders use it to capture very small moves repeatedly.
+Holding crypto for months or years expecting long term growth.
 """,
                 back_menu)
 
 
-            elif text=="4️⃣ Long-term Investing":
-
-                send(chat,
-"""
-🪙 LONG-TERM INVESTING
-
-Holding crypto for months or years.
-
-Investors believe the value will grow over time.
-
-Example strategy: Bitcoin long-term holding.
-""",
-                back_menu)
-
-
-            # =====================
-            # RISK
-            # =====================
-
-            elif text=="3️⃣ ⚠ Risk":
-
-                send(chat,
-"""
-⚠ RISK MANAGEMENT
-
-Never risk more than 2% per trade.
-Always use stop-loss.
-Never trade emotionally.
-""",
-                back_menu)
-
-
-            # =====================
             # MARKET
-            # =====================
 
             elif text=="4️⃣ 📊 Market":
 
@@ -425,21 +360,97 @@ Never trade emotionally.
 """
 📊 CRYPTO MARKET CYCLES
 
-1 Accumulation
-2 Uptrend
-3 Distribution
-4 Downtrend
+Markets move in repeating phases driven by investor psychology.
+""",
+                market_menu)
+
+
+            elif text=="1️⃣ Accumulation":
+
+                send(chat,
+"""
+Accumulation phase happens after a market crash where smart investors slowly buy assets.
 """,
                 back_menu)
 
 
-            # =====================
-            # PRICE MENU
-            # =====================
+            elif text=="2️⃣ Uptrend":
+
+                send(chat,
+"""
+Uptrend phase is when prices start rising and investor confidence returns.
+""",
+                back_menu)
+
+
+            elif text=="3️⃣ Distribution":
+
+                send(chat,
+"""
+Distribution phase is when early investors start taking profits.
+""",
+                back_menu)
+
+
+            elif text=="4️⃣ Downtrend":
+
+                send(chat,
+"""
+Downtrend is when selling pressure dominates and prices fall.
+""",
+                back_menu)
+
+
+            # STAKING
+
+            elif text=="8️⃣ 🔒 Staking":
+
+                send(chat,
+"""
+🔒 WHAT IS STAKING?
+
+Staking allows crypto holders to earn rewards by locking their coins to support a blockchain network.
+
+Benefits:
+
+• Passive income
+• Network security
+• Long-term investment strategy
+""",
+                staking_menu)
+
+
+            elif text=="1️⃣ Passive income":
+
+                send(chat,
+"""
+Passive income means earning rewards regularly just by holding and staking your crypto.
+""",
+                back_menu)
+
+
+            elif text=="2️⃣ Network security":
+
+                send(chat,
+"""
+Staking helps validate blockchain transactions and keeps the network secure.
+""",
+                back_menu)
+
+
+            elif text=="3️⃣ Long-term investment strategy":
+
+                send(chat,
+"""
+Staking encourages holding crypto long term while earning rewards.
+""",
+                back_menu)
+
+
+            # PRICE
 
             elif text=="5️⃣ 💰 Price":
                 send(chat,"Choose a coin:",price_menu)
-
 
             elif text=="BTC":
                 send(chat,f"₿ Bitcoin price: ${price('bitcoin')}")
@@ -454,9 +465,7 @@ Never trade emotionally.
                 send(chat,f"BNB price: ${price('binancecoin')}")
 
 
-            # =====================
-            # CHARTS (UNCHANGED)
-            # =====================
+            # CHARTS
 
             elif text=="6️⃣ 📊 Charts":
                 send(chat,"Choose chart:",chart_menu)
@@ -474,94 +483,15 @@ Never trade emotionally.
                 send(chat,"https://www.tradingview.com/chart/?symbol=BINANCE:BNBUSDT")
 
 
-            # =====================
-            # ALTCOINS
-            # =====================
-
-            elif text=="7️⃣ 🌕 Altcoins":
-
-                send(chat,
-"""
-🌕 Altcoins are cryptocurrencies other than Bitcoin.
-
-Examples:
-Ethereum
-Solana
-Cardano
-Avalanche
-""",
-                back_menu)
-
-
-            # =====================
-            # STAKING
-            # =====================
-
-            elif text=="8️⃣ 🔒 Staking":
-
-                send(chat,
-"""
-🔒 Staking allows holders to earn rewards by locking coins.
-""",
-                back_menu)
-
-
-            # =====================
-            # PORTFOLIO
-            # =====================
-
-            elif text=="9️⃣ 💼 Portfolio":
-
-                send(chat,
-"""
-💼 Example portfolio:
-
-50% Bitcoin
-25% Ethereum
-15% Altcoins
-10% Stablecoins
-""",
-                back_menu)
-
-
-            # =====================
-            # NEWS (UNCHANGED)
-            # =====================
-
-            elif text=="🔟 📰 News":
-                send(chat,crypto_news(),back_menu)
-
-
-            # =====================
-            # AI MODE
-            # =====================
-
-            elif text=="🧠 AI Assistant":
-
-                ai_mode[chat]=True
-                send(chat,"Ask any crypto question.",back_menu)
-
+            # BACK
 
             elif text=="⬅ Back":
-
-                ai_mode[chat]=False
                 send(chat,"Main menu",main_menu)
-
-
-            else:
-
-                if ai_mode.get(chat):
-                    reply=llama_ai(text)
-                    send(chat,reply)
-                else:
-                    send(chat,"Choose an option.",main_menu)
 
         time.sleep(1)
 
 
-# =========================
 # START BOT
-# =========================
 
 if __name__=="__main__":
 
