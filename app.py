@@ -1,304 +1,351 @@
-import os
 import requests
-from flask import Flask, request, jsonify
+import time
 
-app = Flask(__name__)
+TOKEN = "TON_TOKEN_ICI"
+URL = f"https://api.telegram.org/bot{TOKEN}/"
 
-BOT_TOKEN = os.environ.get("BOT_TOKEN")
-TELEGRAM_API = f"https://api.telegram.org/bot{BOT_TOKEN}"
+# MENUS
+main_menu = {
+    "keyboard":[
+        ["📚 Learn","📈 Trading"],
+        ["⚠ Risk","📊 Market"],
+        ["💰 Price","📊 Charts"],
+        ["🌕 Altcoins","🔒 Staking"],
+        ["💼 Portfolio","📰 News"],
+        ["🧠 AI Assistant"]
+    ],
+    "resize_keyboard":True
+}
 
-# ---------------- SEND FUNCTION ----------------
+price_menu = {
+    "keyboard":[
+        ["BTC","ETH"],
+        ["SOL","BNB"],
+        ["⬅ Back"]
+    ],
+    "resize_keyboard":True
+}
 
-def send_message(chat_id, text, keyboard=None):
+chart_menu = {
+    "keyboard":[
+        ["BTC Chart","ETH Chart"],
+        ["SOL Chart","BNB Chart"],
+        ["⬅ Back"]
+    ],
+    "resize_keyboard":True
+}
 
-    url = f"{TELEGRAM_API}/sendMessage"
+back_menu = {
+    "keyboard":[["⬅ Back"]],
+    "resize_keyboard":True
+}
 
-    payload = {
-        "chat_id": chat_id,
-        "text": text,
-        "parse_mode": "HTML"
+
+def send(chat_id,text,keyboard=None):
+
+    data = {
+        "chat_id":chat_id,
+        "text":text
     }
 
     if keyboard:
-        payload["reply_markup"] = {
-            "keyboard": keyboard,
-            "resize_keyboard": True
-        }
+        data["reply_markup"]=keyboard
 
-    requests.post(url, json=payload)
+    requests.post(URL+"sendMessage",json=data)
 
 
-# ---------------- MENUS ----------------
+def price(coin):
 
-main_menu = [
-    ["📚 Learn", "📈 Trading"],
-    ["⚠ Risk", "📊 Market"],
-    ["💰 Price", "🧠 AI Assistant"],
-    ["🌕 Altcoins", "🔒 Staking"],
-    ["💼 Portfolio", "📰 News"]
-]
+    r = requests.get(
+        f"https://api.coingecko.com/api/v3/simple/price?ids={coin}&vs_currencies=usd"
+    )
 
-learn_menu = [
-    ["What is Blockchain"],
-    ["Bitcoin Basics"],
-    ["Trading Psychology"],
-    ["Market Cycles"],
-    ["⬅ Back"]
-]
+    data = r.json()
 
-trading_menu = [
-    ["Day Trading"],
-    ["Swing Trading"],
-    ["Long Term Investing"],
-    ["⬅ Back"]
-]
+    return data[coin]["usd"]
 
-price_menu = [
-    ["BTC Price", "ETH Price"],
-    ["SOL Price", "Top 5 Prices"],
-    ["⬅ Back"]
-]
 
-news_menu = [
-    ["Latest News"],
-    ["⬅ Back"]
-]
+def crypto_news():
 
-# ---------------- API ----------------
+    r = requests.get(
+        "https://min-api.cryptocompare.com/data/v2/news/?lang=EN"
+    )
 
-def get_price(coin):
+    news = r.json()["Data"][:5]
 
-    try:
+    text = "📰 Latest Crypto News\n\n"
 
-        url = "https://api.coingecko.com/api/v3/simple/price"
-        params = {"ids": coin, "vs_currencies": "usd"}
+    for n in news:
+        text += f"{n['title']}\n{n['url']}\n\n"
 
-        r = requests.get(url, params=params)
-        data = r.json()
+    return text
 
-        return data[coin]["usd"]
 
-    except:
-        return "Unavailable"
+def ai_answer(q):
 
+    q=q.lower()
 
-def get_top_prices():
+    if "blockchain" in q:
 
-    try:
+        return """🔗 Blockchain
 
-        url = "https://api.coingecko.com/api/v3/coins/markets"
-        params = {"vs_currency":"usd","order":"market_cap_desc","per_page":5,"page":1}
+Blockchain is a decentralized digital ledger that records transactions across many computers.
 
-        r = requests.get(url, params=params)
-        data = r.json()
+Each block contains:
+• transaction data
+• timestamp
+• cryptographic hash
 
-        text = "💰 <b>Top 5 Crypto Prices</b>\n\n"
+Once recorded, the data cannot be changed, making blockchain transparent and secure.
 
-        for coin in data:
-            text += f"{coin['name']} : ${coin['current_price']}\n"
+It powers cryptocurrencies like Bitcoin and Ethereum."""
 
-        return text
+    elif "bitcoin" in q:
 
-    except:
-        return "Price data unavailable"
+        return """₿ Bitcoin
 
+Bitcoin is the first decentralized cryptocurrency created in 2009 by Satoshi Nakamoto.
 
-def get_news():
+Key features:
+• limited supply (21 million)
+• decentralized network
+• secure blockchain
 
-    try:
+Bitcoin is often called digital gold."""
 
-        url = "https://min-api.cryptocompare.com/data/v2/news/?lang=EN"
+    elif "ethereum" in q:
 
-        r = requests.get(url)
-        data = r.json()
+        return """Ξ Ethereum
 
-        text = "📰 <b>Latest Crypto News</b>\n\n"
+Ethereum is a decentralized blockchain that supports smart contracts and decentralized applications.
 
-        for n in data["Data"][:5]:
-            text += f"{n['title']}\n{n['url']}\n\n"
+It allows developers to build:
+• DeFi platforms
+• NFT marketplaces
+• Web3 apps"""
 
-        return text
+    else:
 
-    except:
-        return "News unavailable"
+        return "Ask me anything about crypto, trading or blockchain."
 
 
-# ---------------- ROUTES ----------------
+def updates(offset):
 
-@app.route("/")
-def home():
-    return "Bot running"
+    r = requests.get(URL+"getUpdates",params={"offset":offset})
 
+    return r.json()
 
-@app.route("/webhook", methods=["POST"])
-def webhook():
 
-    try:
+offset = 0
 
-        data = request.get_json()
+while True:
 
-        if not data:
-            return jsonify({"ok":True})
+    data = updates(offset)
 
-        message = data.get("message")
+    for u in data["result"]:
 
-        if not message:
-            return jsonify({"ok":True})
+        offset = u["update_id"]+1
 
-        chat_id = message["chat"]["id"]
-        text = message.get("text","")
+        if "message" not in u:
+            continue
 
-        text = text.lower()
+        msg = u["message"]
 
-# ---------------- START ----------------
+        if "text" not in msg:
+            continue
 
-        if "/start" in text:
+        chat = msg["chat"]["id"]
 
-            msg = """
-🤖 <b>OpenClaw AI Coach</b>
+        text = msg["text"].strip()
 
-Welcome to your crypto learning assistant.
 
-This bot helps you understand:
+        if text == "/start":
 
-📚 Cryptocurrency fundamentals  
-📈 Trading strategies  
-⚠ Risk management  
-📊 Market analysis  
-💰 Live crypto prices  
-🌕 Altcoins insights  
-🔒 Staking systems  
-💼 Portfolio building  
-📰 Latest crypto news
-"""
+            send(chat,
+                 "🤖 Welcome to your Crypto AI Assistant\nChoose a menu:",
+                 main_menu)
 
-            send_message(chat_id,msg,main_menu)
 
-# ---------------- LEARN ----------------
+        elif "Learn" in text:
 
-        elif "learn" in text:
-            send_message(chat_id,"📚 Crypto Education",learn_menu)
+            send(chat,
+"""📚 Crypto Education
 
-        elif "blockchain" in text:
+Cryptocurrency is digital money secured by cryptography and powered by blockchain technology.
 
-            msg = """
-🔗 <b>What is Blockchain?</b>
+Blockchain is a decentralized ledger where transactions are recorded across many computers.
 
-Blockchain is a decentralized digital ledger that records transactions across a distributed network of computers.
+Advantages:
+• transparency
+• security
+• decentralization
+• global access
 
-Instead of storing information in one central database, blockchain stores data in blocks that are linked together chronologically. Each block contains:
+Cryptocurrencies remove intermediaries like banks.""",
+            back_menu)
 
-• Transaction data  
-• A timestamp  
-• A cryptographic hash of the previous block  
 
-This structure makes the system extremely secure because altering one block would require changing all subsequent blocks across the entire network.
+        elif "Trading" in text:
 
-Blockchain operates through consensus mechanisms such as Proof of Work or Proof of Stake, which ensure that all participants agree on the validity of transactions.
+            send(chat,
+"""📈 Trading
 
-Because of this design, blockchain provides:
+Crypto trading is buying and selling cryptocurrencies to profit from price movements.
 
-• Transparency  
-• Security  
-• Decentralization  
-• Resistance to censorship  
+Main strategies:
 
-It is the core technology behind cryptocurrencies like Bitcoin and many other decentralized applications.
-"""
+Scalping – very fast trades
+Day trading – trades opened and closed same day
+Swing trading – trades lasting days or weeks
+Trend trading – following long market trends""",
+            back_menu)
 
-            send_message(chat_id,msg,learn_menu)
 
-        elif "bitcoin basics" in text:
+        elif "Risk" in text:
 
-            msg = """
-₿ <b>Bitcoin Basics</b>
+            send(chat,
+"""⚠ Risk Management
 
-Bitcoin is the first decentralized cryptocurrency, created in 2009 by an anonymous person or group known as Satoshi Nakamoto.
+Risk management protects your capital.
 
-Key characteristics of Bitcoin include:
+Golden rules:
+• never risk more than 2% per trade
+• always use stop loss
+• diversify your portfolio
+• avoid emotional trading""",
+            back_menu)
 
-• A fixed maximum supply of 21 million coins  
-• A decentralized network with no central authority  
-• Transactions verified by miners using Proof of Work  
-• Transparent and immutable transaction records stored on the blockchain  
 
-Bitcoin can be used for:
+        elif "Market" in text:
 
-• Digital payments  
-• International transfers  
-• Long-term investment (store of value)  
+            send(chat,
+"""📊 Market Cycles
 
-Many investors consider Bitcoin to be "digital gold" because of its scarcity and resistance to inflation.
-"""
+Crypto markets move in cycles:
 
-            send_message(chat_id,msg,learn_menu)
+1️⃣ Accumulation
+2️⃣ Uptrend
+3️⃣ Distribution
+4️⃣ Downtrend
 
-# ---------------- TRADING ----------------
+Understanding cycles helps investors buy low and sell high.""",
+            back_menu)
 
-        elif "trading" in text:
-            send_message(chat_id,"📈 Trading Strategies",trading_menu)
 
-        elif "day trading" in text:
+        elif "Price" in text:
 
-            msg = """
-📈 <b>Day Trading</b>
+            send(chat,"Choose a cryptocurrency:",price_menu)
 
-Day trading is a strategy where traders open and close positions within the same day.
 
-The goal is to profit from small price movements during short periods of time.
+        elif text=="BTC":
 
-Day traders typically rely on:
+            p=price("bitcoin")
+            send(chat,f"₿ Bitcoin price: ${p}")
 
-• Technical analysis  
-• Chart patterns  
-• Indicators such as RSI and MACD  
-• High market liquidity  
+        elif text=="ETH":
 
-Because the crypto market operates 24/7, day traders must monitor the market frequently and apply strict risk management.
+            p=price("ethereum")
+            send(chat,f"Ξ Ethereum price: ${p}")
 
-This strategy is considered high risk but can produce frequent opportunities.
-"""
+        elif text=="SOL":
 
-            send_message(chat_id,msg,trading_menu)
+            p=price("solana")
+            send(chat,f"◎ Solana price: ${p}")
 
-# ---------------- PRICE ----------------
+        elif text=="BNB":
 
-        elif "btc price" in text:
-            send_message(chat_id,f"BTC Price = ${get_price('bitcoin')}",price_menu)
+            p=price("binancecoin")
+            send(chat,f"BNB price: ${p}")
 
-        elif "eth price" in text:
-            send_message(chat_id,f"ETH Price = ${get_price('ethereum')}",price_menu)
 
-        elif "sol price" in text:
-            send_message(chat_id,f"SOL Price = ${get_price('solana')}",price_menu)
+        elif "Charts" in text:
 
-        elif "top 5 prices" in text:
-            send_message(chat_id,get_top_prices(),price_menu)
+            send(chat,"Choose chart:",chart_menu)
 
-# ---------------- NEWS ----------------
 
-        elif "news" in text:
-            send_message(chat_id,get_news(),news_menu)
+        elif "BTC Chart" in text:
 
-# ---------------- BACK ----------------
+            send(chat,"https://www.tradingview.com/chart/?symbol=BINANCE:BTCUSDT")
 
-        elif "back" in text:
-            send_message(chat_id,"Main Menu",main_menu)
+        elif "ETH Chart" in text:
+
+            send(chat,"https://www.tradingview.com/chart/?symbol=BINANCE:ETHUSDT")
+
+        elif "SOL Chart" in text:
+
+            send(chat,"https://www.tradingview.com/chart/?symbol=BINANCE:SOLUSDT")
+
+        elif "BNB Chart" in text:
+
+            send(chat,"https://www.tradingview.com/chart/?symbol=BINANCE:BNBUSDT")
+
+
+        elif "Altcoins" in text:
+
+            send(chat,
+"""🌕 Altcoins
+
+Altcoins are cryptocurrencies other than Bitcoin.
+
+Popular altcoins:
+• Ethereum
+• Solana
+• Cardano
+• Avalanche
+• Polkadot""",
+            back_menu)
+
+
+        elif "Staking" in text:
+
+            send(chat,
+"""🔒 Staking
+
+Staking means locking your crypto in a network to help validate transactions.
+
+In return you receive rewards.
+
+Popular staking coins:
+• Ethereum
+• Cardano
+• Solana""",
+            back_menu)
+
+
+        elif "Portfolio" in text:
+
+            send(chat,
+"""💼 Portfolio Strategy
+
+Example crypto portfolio:
+
+50% Bitcoin
+25% Ethereum
+15% Altcoins
+10% Stablecoins
+
+Diversification reduces risk.""",
+            back_menu)
+
+
+        elif "News" in text:
+
+            send(chat,crypto_news(),back_menu)
+
+
+        elif "AI" in text:
+
+            send(chat,"Ask any crypto question.",back_menu)
+
+
+        elif "Back" in text:
+
+            send(chat,"Main menu",main_menu)
+
 
         else:
 
-            send_message(chat_id,
-            "🤖 Ask me anything about cryptocurrency, trading or blockchain technology.",
-            main_menu)
-
-    except Exception as e:
-        print("ERROR:",e)
-
-    return jsonify({"ok":True})
+            send(chat,ai_answer(text))
 
 
-if __name__ == "__main__":
-
-    port = int(os.environ.get("PORT",10000))
-
-    app.run(host="0.0.0.0",port=port)
+    time.sleep(1)
