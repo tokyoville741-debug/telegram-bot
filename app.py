@@ -17,10 +17,6 @@ def home():
     return "Crypto AI Bot running 🚀"
 
 
-# =========================
-# LANGUAGE SYSTEM
-# =========================
-
 languages={}
 
 language_menu={
@@ -32,12 +28,7 @@ language_menu={
 "resize_keyboard":True
 }
 
-
-# =========================
-# MAIN MENU
-# =========================
-
-main_menu = {
+main_menu={
 "keyboard":[
 ["1️⃣ 📚 Learn","2️⃣ 📈 Trading"],
 ["3️⃣ ⚠ Risk","4️⃣ 📊 Market"],
@@ -49,11 +40,6 @@ main_menu = {
 ],
 "resize_keyboard":True
 }
-
-
-# =========================
-# SUB MENUS
-# =========================
 
 trading_menu={
 "keyboard":[
@@ -86,12 +72,7 @@ staking_menu={
 "resize_keyboard":True
 }
 
-
-# =========================
-# PRICE MENU
-# =========================
-
-price_menu = {
+price_menu={
 "keyboard":[
 ["BTC","ETH"],
 ["SOL","BNB"],
@@ -100,12 +81,7 @@ price_menu = {
 "resize_keyboard":True
 }
 
-
-# =========================
-# CHART MENU
-# =========================
-
-chart_menu = {
+chart_menu={
 "keyboard":[
 ["BTC Chart","ETH Chart"],
 ["SOL Chart","BNB Chart"],
@@ -114,40 +90,21 @@ chart_menu = {
 "resize_keyboard":True
 }
 
-
-# =========================
-# BACK MENU
-# =========================
-
-back_menu = {
+back_menu={
 "keyboard":[["⬅ Back"]],
 "resize_keyboard":True
 }
 
 
-# =========================
-# SEND MESSAGE
-# =========================
-
 def send(chat_id,text,keyboard=None):
 
-    payload={
-    "chat_id":chat_id,
-    "text":text
-    }
+    payload={"chat_id":chat_id,"text":text}
 
     if keyboard:
         payload["reply_markup"]=keyboard
 
-    try:
-        requests.post(URL+"sendMessage",json=payload,timeout=10)
-    except Exception as e:
-        print("Send error:",e)
+    requests.post(URL+"sendMessage",json=payload)
 
-
-# =========================
-# PRICE API
-# =========================
 
 def price(coin):
 
@@ -155,35 +112,26 @@ def price(coin):
 
         r=requests.get(
         "https://api.coingecko.com/api/v3/simple/price",
-        params={"ids":coin,"vs_currencies":"usd"},
-        timeout=10
+        params={"ids":coin,"vs_currencies":"usd"}
         )
 
         data=r.json()
 
-        if coin in data:
-            return data[coin]["usd"]
-
-        return "Unavailable"
+        return data[coin]["usd"]
 
     except:
         return "Unavailable"
 
-
-# =========================
-# NEWS
-# =========================
 
 def crypto_news():
 
     try:
 
         r=requests.get(
-        "https://min-api.cryptocompare.com/data/v2/news/?lang=EN",
-        timeout=10
+        "https://min-api.cryptocompare.com/data/v2/news/?lang=EN"
         )
 
-        news=r.json().get("Data",[])[:5]
+        news=r.json()["Data"][:5]
 
         text="📰 Latest Crypto News\n\n"
 
@@ -196,14 +144,7 @@ def crypto_news():
         return "News unavailable."
 
 
-# =========================
-# AI
-# =========================
-
 def llama_ai(question):
-
-    if not LLAMA_API_KEY:
-        return "AI unavailable."
 
     headers={
     "Authorization":f"Bearer {LLAMA_API_KEY}",
@@ -218,49 +159,19 @@ def llama_ai(question):
     ]
     }
 
-    try:
+    r=requests.post(LLAMA_URL,headers=headers,json=data)
 
-        r=requests.post(
-        LLAMA_URL,
-        headers=headers,
-        json=data,
-        timeout=30
-        )
+    result=r.json()
 
-        result=r.json()
+    return result["choices"][0]["message"]["content"]
 
-        if "choices" in result:
-            return result["choices"][0]["message"]["content"]
-
-        return "AI unavailable."
-
-    except:
-        return "AI unavailable."
-
-
-# =========================
-# TELEGRAM UPDATES
-# =========================
 
 def get_updates(offset):
 
-    try:
+    r=requests.get(URL+"getUpdates",params={"offset":offset,"timeout":25})
 
-        r=requests.get(
-        URL+"getUpdates",
-        params={"offset":offset,"timeout":25},
-        timeout=30
-        )
+    return r.json()
 
-        return r.json()
-
-    except:
-        return {}
-
-
-# =========================
-# BOT LOOP
-# =========================
 
 def run_bot():
 
@@ -271,7 +182,7 @@ def run_bot():
 
         data=get_updates(offset)
 
-        if not data or "result" not in data:
+        if "result" not in data:
             time.sleep(2)
             continue
 
@@ -288,187 +199,137 @@ def run_bot():
                 continue
 
             chat=msg["chat"]["id"]
-            text=msg["text"].strip()
+            text=msg["text"]
 
-
-            # START
 
             if text=="/start":
 
-                welcome="""
+                send(chat,
+"""
 🤖 Welcome to the Crypto AI Assistant
 
 This bot helps you learn cryptocurrency step by step.
+""",
+                main_menu)
+
+
+            elif text=="1️⃣ 📚 Learn":
+
+                send(chat,
 """
+📚 Cryptocurrency is digital money powered by blockchain technology.
+""",
+                back_menu)
 
-                send(chat,welcome,main_menu)
+
+            elif text=="3️⃣ ⚠ Risk":
+
+                send(chat,
+"""
+⚠ Risk management is essential in trading.
+
+Never risk more than 2% per trade.
+Always use stop-loss.
+Avoid emotional trading.
+""",
+                back_menu)
 
 
-            # TRADING
+            elif text=="7️⃣ 🌕 Altcoins":
+
+                send(chat,
+"""
+🌕 Altcoins are cryptocurrencies other than Bitcoin.
+
+Examples include Ethereum, Solana, Cardano.
+""",
+                back_menu)
+
+
+            elif text=="9️⃣ 💼 Portfolio":
+
+                send(chat,
+"""
+💼 Example portfolio:
+
+50% Bitcoin
+25% Ethereum
+15% Altcoins
+10% Stablecoins
+""",
+                back_menu)
+
+
+            elif text=="🔟 📰 News":
+
+                send(chat,crypto_news(),back_menu)
+
+
+            elif text=="🧠 AI Assistant":
+
+                ai_mode[chat]=True
+                send(chat,"Ask any crypto question 🤖",back_menu)
+
+
+            elif chat in ai_mode:
+
+                answer=llama_ai(text)
+
+                send(chat,answer,back_menu)
+
+
+            elif text=="🌍 Language":
+
+                send(chat,"Choose language",language_menu)
+
+
+            elif text=="🇬🇧 English":
+                send(chat,"Language set to English",main_menu)
+
+            elif text=="🇫🇷 Français":
+                send(chat,"Langue définie sur Français",main_menu)
+
+            elif text=="🇪🇸 Español":
+                send(chat,"Idioma configurado",main_menu)
+
 
             elif text=="2️⃣ 📈 Trading":
 
-                send(chat,
-"""
-📈 WHAT IS CRYPTO TRADING?
+                send(chat,"Choose trading style",trading_menu)
 
-Crypto trading is the act of buying and selling cryptocurrencies in order to make a profit.
-
-Traders analyze price movements using charts and market data.
-""",
-                trading_menu)
-
-
-            elif text=="1️⃣ Day Trading":
-
-                send(chat,
-"""
-📈 DAY TRADING
-
-Buying and selling crypto within the same day to profit from short-term price movements.
-""",
-                back_menu)
-
-
-            elif text=="2️⃣ Swing Trading":
-
-                send(chat,
-"""
-📊 SWING TRADING
-
-Holding trades for several days or weeks to capture market trends.
-""",
-                back_menu)
-
-
-            elif text=="3️⃣ Long-term Investing":
-
-                send(chat,
-"""
-🪙 LONG TERM INVESTING
-
-Holding crypto for months or years expecting long term growth.
-""",
-                back_menu)
-
-
-            # MARKET
 
             elif text=="4️⃣ 📊 Market":
 
-                send(chat,
-"""
-📊 CRYPTO MARKET CYCLES
+                send(chat,"Market cycles",market_menu)
 
-Markets move in repeating phases driven by investor psychology.
-""",
-                market_menu)
-
-
-            elif text=="1️⃣ Accumulation":
-
-                send(chat,
-"""
-Accumulation phase happens after a market crash where smart investors slowly buy assets.
-""",
-                back_menu)
-
-
-            elif text=="2️⃣ Uptrend":
-
-                send(chat,
-"""
-Uptrend phase is when prices start rising and investor confidence returns.
-""",
-                back_menu)
-
-
-            elif text=="3️⃣ Distribution":
-
-                send(chat,
-"""
-Distribution phase is when early investors start taking profits.
-""",
-                back_menu)
-
-
-            elif text=="4️⃣ Downtrend":
-
-                send(chat,
-"""
-Downtrend is when selling pressure dominates and prices fall.
-""",
-                back_menu)
-
-
-            # STAKING
 
             elif text=="8️⃣ 🔒 Staking":
 
-                send(chat,
-"""
-🔒 WHAT IS STAKING?
+                send(chat,"Staking benefits",staking_menu)
 
-Staking allows crypto holders to earn rewards by locking their coins to support a blockchain network.
-
-Benefits:
-
-• Passive income
-• Network security
-• Long-term investment strategy
-""",
-                staking_menu)
-
-
-            elif text=="1️⃣ Passive income":
-
-                send(chat,
-"""
-Passive income means earning rewards regularly just by holding and staking your crypto.
-""",
-                back_menu)
-
-
-            elif text=="2️⃣ Network security":
-
-                send(chat,
-"""
-Staking helps validate blockchain transactions and keeps the network secure.
-""",
-                back_menu)
-
-
-            elif text=="3️⃣ Long-term investment strategy":
-
-                send(chat,
-"""
-Staking encourages holding crypto long term while earning rewards.
-""",
-                back_menu)
-
-
-            # PRICE
 
             elif text=="5️⃣ 💰 Price":
-                send(chat,"Choose a coin:",price_menu)
+
+                send(chat,"Choose coin",price_menu)
+
 
             elif text=="BTC":
-                send(chat,f"₿ Bitcoin price: ${price('bitcoin')}")
+                send(chat,f"BTC price: ${price('bitcoin')}")
 
             elif text=="ETH":
-                send(chat,f"Ξ Ethereum price: ${price('ethereum')}")
+                send(chat,f"ETH price: ${price('ethereum')}")
 
             elif text=="SOL":
-                send(chat,f"◎ Solana price: ${price('solana')}")
+                send(chat,f"SOL price: ${price('solana')}")
 
             elif text=="BNB":
                 send(chat,f"BNB price: ${price('binancecoin')}")
 
 
-            # CHARTS
-
             elif text=="6️⃣ 📊 Charts":
-                send(chat,"Choose chart:",chart_menu)
+
+                send(chat,"Choose chart",chart_menu)
+
 
             elif text=="BTC Chart":
                 send(chat,"https://www.tradingview.com/chart/?symbol=BINANCE:BTCUSDT")
@@ -483,20 +344,19 @@ Staking encourages holding crypto long term while earning rewards.
                 send(chat,"https://www.tradingview.com/chart/?symbol=BINANCE:BNBUSDT")
 
 
-            # BACK
-
             elif text=="⬅ Back":
+
+                ai_mode.pop(chat,None)
+
                 send(chat,"Main menu",main_menu)
+
 
         time.sleep(1)
 
 
-# START BOT
-
 if __name__=="__main__":
 
-    bot_thread=threading.Thread(target=run_bot)
-    bot_thread.start()
+    threading.Thread(target=run_bot).start()
 
     port=int(os.environ.get("PORT",10000))
     app.run(host="0.0.0.0",port=port)
