@@ -1,6 +1,7 @@
 import requests
 import time
 import threading
+import os
 from flask import Flask
 
 TOKEN = "TON_TOKEN_ICI"
@@ -12,7 +13,9 @@ app = Flask(__name__)
 def home():
     return "Crypto bot running"
 
+
 # MENUS
+
 main_menu = {
     "keyboard":[
         ["📚 Learn","📈 Trading"],
@@ -48,6 +51,7 @@ back_menu = {
     "resize_keyboard":True
 }
 
+
 def send(chat_id,text,keyboard=None):
 
     data = {
@@ -59,7 +63,7 @@ def send(chat_id,text,keyboard=None):
         data["reply_markup"]=keyboard
 
     try:
-        requests.post(URL+"sendMessage",json=data)
+        requests.post(URL+"sendMessage",json=data,timeout=10)
     except:
         pass
 
@@ -68,7 +72,8 @@ def price(coin):
 
     try:
         r = requests.get(
-            f"https://api.coingecko.com/api/v3/simple/price?ids={coin}&vs_currencies=usd"
+            f"https://api.coingecko.com/api/v3/simple/price?ids={coin}&vs_currencies=usd",
+            timeout=10
         )
 
         data = r.json()
@@ -84,7 +89,8 @@ def crypto_news():
     try:
 
         r = requests.get(
-            "https://min-api.cryptocompare.com/data/v2/news/?lang=EN"
+            "https://min-api.cryptocompare.com/data/v2/news/?lang=EN",
+            timeout=10
         )
 
         news = r.json().get("Data",[])[:5]
@@ -120,33 +126,24 @@ Each block contains:
 • timestamp
 • cryptographic hash
 
-Once recorded, the data cannot be changed, making blockchain transparent and secure.
-
-It powers cryptocurrencies like Bitcoin and Ethereum."""
+Once recorded the data cannot be changed."""
 
     elif "bitcoin" in q:
 
         return """₿ Bitcoin
 
-Bitcoin is the first decentralized cryptocurrency created in 2009 by Satoshi Nakamoto.
+Bitcoin is the first decentralized cryptocurrency created in 2009.
 
 Key features:
 • limited supply (21 million)
 • decentralized network
-• secure blockchain
-
-Bitcoin is often called digital gold."""
+• secure blockchain"""
 
     elif "ethereum" in q:
 
         return """Ξ Ethereum
 
-Ethereum is a decentralized blockchain that supports smart contracts and decentralized applications.
-
-It allows developers to build:
-• DeFi platforms
-• NFT marketplaces
-• Web3 apps"""
+Ethereum is a decentralized blockchain supporting smart contracts and decentralized applications."""
 
     else:
 
@@ -156,13 +153,21 @@ It allows developers to build:
 def updates(offset):
 
     try:
-        r = requests.get(URL+"getUpdates",params={"offset":offset})
+        r = requests.get(
+            URL+"getUpdates",
+            params={"offset":offset,"timeout":30},
+            timeout=35
+        )
+
         return r.json()
+
     except:
         return {}
 
 
 def bot():
+
+    print("BOT STARTED")
 
     offset = 0
 
@@ -174,9 +179,9 @@ def bot():
             time.sleep(1)
             continue
 
-        for u in data.get("result",[]):
+        for u in data["result"]:
 
-            offset = u["update_id"]+1
+            offset = u["update_id"] + 1
 
             if "message" not in u:
                 continue
@@ -193,74 +198,28 @@ def bot():
             if text == "/start":
 
                 send(chat,
-                     "🤖 Welcome to your Crypto AI Assistant\nChoose a menu:",
-                     main_menu)
+                "🤖 Welcome to your Crypto AI Assistant\nChoose a menu:",
+                main_menu)
 
 
             elif "Learn" in text:
 
-                send(chat,
-"""📚 Crypto Education
-
-Cryptocurrency is digital money secured by cryptography and powered by blockchain technology.
-
-Blockchain is a decentralized ledger where transactions are recorded across many computers.
-
-Advantages:
-• transparency
-• security
-• decentralization
-• global access
-
-Cryptocurrencies remove intermediaries like banks.""",
-                back_menu)
+                send(chat,"📚 Crypto Education\nCryptocurrency is digital money powered by blockchain.",back_menu)
 
 
             elif "Trading" in text:
 
-                send(chat,
-"""📈 Trading
-
-Crypto trading is buying and selling cryptocurrencies to profit from price movements.
-
-Main strategies:
-
-Scalping – very fast trades
-Day trading – trades opened and closed same day
-Swing trading – trades lasting days or weeks
-Trend trading – following long market trends""",
-                back_menu)
+                send(chat,"📈 Trading\nBuy and sell crypto to profit from price movements.",back_menu)
 
 
             elif "Risk" in text:
 
-                send(chat,
-"""⚠ Risk Management
-
-Risk management protects your capital.
-
-Golden rules:
-• never risk more than 2% per trade
-• always use stop loss
-• diversify your portfolio
-• avoid emotional trading""",
-                back_menu)
+                send(chat,"⚠ Risk Management\nNever risk more than 2% per trade.",back_menu)
 
 
             elif "Market" in text:
 
-                send(chat,
-"""📊 Market Cycles
-
-Crypto markets move in cycles:
-
-1️⃣ Accumulation
-2️⃣ Uptrend
-3️⃣ Distribution
-4️⃣ Downtrend
-
-Understanding cycles helps investors buy low and sell high.""",
-                back_menu)
+                send(chat,"📊 Market Cycles\nAccumulation → Uptrend → Distribution → Downtrend",back_menu)
 
 
             elif "Price" in text:
@@ -270,23 +229,19 @@ Understanding cycles helps investors buy low and sell high.""",
 
             elif text=="BTC":
 
-                p=price("bitcoin")
-                send(chat,f"₿ Bitcoin price: ${p}")
+                send(chat,f"₿ Bitcoin price: ${price('bitcoin')}")
 
             elif text=="ETH":
 
-                p=price("ethereum")
-                send(chat,f"Ξ Ethereum price: ${p}")
+                send(chat,f"Ξ Ethereum price: ${price('ethereum')}")
 
             elif text=="SOL":
 
-                p=price("solana")
-                send(chat,f"◎ Solana price: ${p}")
+                send(chat,f"◎ Solana price: ${price('solana')}")
 
             elif text=="BNB":
 
-                p=price("binancecoin")
-                send(chat,f"BNB price: ${p}")
+                send(chat,f"BNB price: ${price('binancecoin')}")
 
 
             elif "Charts" in text:
@@ -313,50 +268,17 @@ Understanding cycles helps investors buy low and sell high.""",
 
             elif "Altcoins" in text:
 
-                send(chat,
-"""🌕 Altcoins
-
-Altcoins are cryptocurrencies other than Bitcoin.
-
-Popular altcoins:
-• Ethereum
-• Solana
-• Cardano
-• Avalanche
-• Polkadot""",
-                back_menu)
+                send(chat,"🌕 Altcoins are cryptocurrencies other than Bitcoin.",back_menu)
 
 
             elif "Staking" in text:
 
-                send(chat,
-"""🔒 Staking
-
-Staking means locking your crypto in a network to help validate transactions.
-
-In return you receive rewards.
-
-Popular staking coins:
-• Ethereum
-• Cardano
-• Solana""",
-                back_menu)
+                send(chat,"🔒 Staking lets you earn rewards by locking crypto.",back_menu)
 
 
             elif "Portfolio" in text:
 
-                send(chat,
-"""💼 Portfolio Strategy
-
-Example crypto portfolio:
-
-50% Bitcoin
-25% Ethereum
-15% Altcoins
-10% Stablecoins
-
-Diversification reduces risk.""",
-                back_menu)
+                send(chat,"💼 Example Portfolio\n50% BTC\n25% ETH\n15% Altcoins\n10% Stablecoins",back_menu)
 
 
             elif "News" in text:
@@ -381,7 +303,10 @@ Diversification reduces risk.""",
         time.sleep(1)
 
 
-threading.Thread(target=bot).start()
-
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=10000)
+
+    threading.Thread(target=bot).start()
+
+    port = int(os.environ.get("PORT",10000))
+
+    app.run(host="0.0.0.0", port=port)
