@@ -1,11 +1,10 @@
 import requests
 import time
-import threading
 import os
 from flask import Flask
 
-TOKEN = "TON_TOKEN_TELEGRAM"
-LLAMA_API_KEY = "TA_CLE_LLAMA"
+TOKEN = os.environ.get("BOT_TOKEN")
+LLAMA_API_KEY = os.environ.get("LLAMA_API_KEY")
 
 URL = f"https://api.telegram.org/bot{TOKEN}/"
 LLAMA_URL = "https://api.llama-api.com/chat/completions"
@@ -14,7 +13,7 @@ app = Flask(__name__)
 
 @app.route("/")
 def home():
-    return "Crypto bot running"
+    return "Crypto AI Bot running 🚀"
 
 
 # MENUS
@@ -55,32 +54,33 @@ back_menu = {
 }
 
 
-# TELEGRAM SEND
+# SEND MESSAGE
 
 def send(chat_id,text,keyboard=None):
 
-    data = {
+    payload = {
         "chat_id":chat_id,
         "text":text
     }
 
     if keyboard:
-        data["reply_markup"]=keyboard
+        payload["reply_markup"] = keyboard
 
     try:
-        requests.post(URL+"sendMessage",json=data,timeout=10)
+        requests.post(URL+"sendMessage",json=payload,timeout=10)
     except Exception as e:
         print("Send error:",e)
 
 
-# COIN PRICE
+# CRYPTO PRICE
 
 def price(coin):
 
     try:
 
         r = requests.get(
-            f"https://api.coingecko.com/api/v3/simple/price?ids={coin}&vs_currencies=usd",
+            "https://api.coingecko.com/api/v3/simple/price",
+            params={"ids":coin,"vs_currencies":"usd"},
             timeout=10
         )
 
@@ -92,7 +92,7 @@ def price(coin):
         return "Unavailable"
 
 
-# CRYPTO NEWS
+# NEWS
 
 def crypto_news():
 
@@ -126,7 +126,7 @@ def llama_ai(question):
     }
 
     data = {
-        "model": "meta-llama-3.3-70b-instruct",
+        "model":"meta-llama-3.3-70b-instruct",
         "messages":[
             {"role":"system","content":"You are a crypto trading assistant."},
             {"role":"user","content":question}
@@ -142,20 +142,20 @@ def llama_ai(question):
             timeout=30
         )
 
-        response = r.json()
+        result = r.json()
 
-        return response["choices"][0]["message"]["content"]
+        return result["choices"][0]["message"]["content"]
 
     except Exception as e:
 
         print("LLAMA ERROR:",e)
 
-        return "AI unavailable right now."
+        return "AI unavailable."
 
 
 # TELEGRAM UPDATES
 
-def updates(offset):
+def get_updates(offset):
 
     try:
 
@@ -170,34 +170,33 @@ def updates(offset):
     except Exception as e:
 
         print("Update error:",e)
-
         return {}
 
 
 # BOT LOOP
 
-def bot():
+def run_bot():
 
-    print("BOT STARTED")
+    print("Bot started")
 
     offset = None
 
     while True:
 
-        data = updates(offset)
+        data = get_updates(offset)
 
-        if "result" not in data:
+        if not data or "result" not in data:
             time.sleep(2)
             continue
 
-        for u in data["result"]:
+        for update in data["result"]:
 
-            offset = u["update_id"] + 1
+            offset = update["update_id"] + 1
 
-            if "message" not in u:
+            if "message" not in update:
                 continue
 
-            msg = u["message"]
+            msg = update["message"]
 
             if "text" not in msg:
                 continue
@@ -209,41 +208,41 @@ def bot():
             if text == "/start":
 
                 send(chat,
-                "🤖 Welcome to your Crypto AI Assistant\nChoose a menu:",
+                "🤖 Welcome to your Crypto AI Assistant",
                 main_menu)
 
 
             elif "Learn" in text:
 
                 send(chat,
-                "📚 Crypto Education\nCryptocurrency is digital money powered by blockchain.",
+                "📚 Cryptocurrency is digital money powered by blockchain.",
                 back_menu)
 
 
             elif "Trading" in text:
 
                 send(chat,
-                "📈 Trading\nBuy and sell crypto to profit from price movements.",
+                "📈 Trading means buying and selling crypto to profit.",
                 back_menu)
 
 
             elif "Risk" in text:
 
                 send(chat,
-                "⚠ Risk Management\nNever risk more than 2% per trade.",
+                "⚠ Never risk more than 2% of capital per trade.",
                 back_menu)
 
 
             elif "Market" in text:
 
                 send(chat,
-                "📊 Market Cycles\nAccumulation → Uptrend → Distribution → Downtrend",
+                "📊 Market cycles: Accumulation → Uptrend → Distribution → Downtrend",
                 back_menu)
 
 
             elif "Price" in text:
 
-                send(chat,"Choose a cryptocurrency:",price_menu)
+                send(chat,"Choose a coin:",price_menu)
 
 
             elif text == "BTC":
@@ -298,7 +297,7 @@ def bot():
 
             elif "Staking" in text:
 
-                send(chat,"🔒 Staking lets you earn rewards by locking crypto.",back_menu)
+                send(chat,"🔒 Staking allows earning rewards by locking crypto.",back_menu)
 
 
             elif "Portfolio" in text:
@@ -309,11 +308,6 @@ def bot():
             elif "News" in text:
 
                 send(chat,crypto_news(),back_menu)
-
-
-            elif "AI" in text:
-
-                send(chat,"Ask any crypto question.",back_menu)
 
 
             elif "Back" in text:
@@ -330,15 +324,8 @@ def bot():
         time.sleep(1)
 
 
-# START SERVER + BOT
+# START BOT
 
 if __name__ == "__main__":
 
-    print("Starting server...")
-
-    bot_thread = threading.Thread(target=bot)
-    bot_thread.start()
-
-    port = int(os.environ.get("PORT",10000))
-
-    app.run(host="0.0.0.0",port=port)
+    run_bot()
