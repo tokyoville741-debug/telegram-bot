@@ -7,8 +7,11 @@ app = Flask(__name__)
 TOKEN = os.environ.get("BOT_TOKEN")
 URL = f"https://api.telegram.org/bot{TOKEN}"
 
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
+
 user_lang = {}
 webhook_set = False
+ai_mode = {}
 
 # ===================== MENUS =====================
 
@@ -408,145 +411,47 @@ def bot():
 
             send(chat,f"Solana Price: ${price('sol-solana')}")
 
-# ===================== CHARTS =====================
-
-        elif text=="6️⃣ Charts":
-
-            send(chat,
-            "6️⃣ Trading Charts\n\n"
-            "View real-time charts to analyze price movements.",
-            chart_menu)
-
-        elif text=="6.1 BTC Chart":
-
-            send(chat,"https://www.tradingview.com/chart/?symbol=BINANCE:BTCUSDT")
-
-        elif text=="6.2 ETH Chart":
-
-            send(chat,"https://www.tradingview.com/chart/?symbol=BINANCE:ETHUSDT")
-
-        elif text=="6.3 BNB Chart":
-
-            send(chat,"https://www.tradingview.com/chart/?symbol=BINANCE:BNBUSDT")
-
-        elif text=="6.4 SOL Chart":
-
-            send(chat,"https://www.tradingview.com/chart/?symbol=BINANCE:SOLUSDT")
-
-# ===================== ALTCOINS =====================
-
-        elif text=="7️⃣ Altcoins":
-
-            send(chat,
-            "7️⃣ Altcoins\n\n"
-            "Altcoins are cryptocurrencies other than Bitcoin.",
-            alt_menu)
-
-        elif text=="7.1 Ethereum":
-
-            send(chat,"Ethereum supports smart contracts.",alt_menu)
-
-        elif text=="7.2 Solana":
-
-            send(chat,"Solana is known for high speed and low fees.",alt_menu)
-
-        elif text=="7.3 Cardano":
-
-            send(chat,"Cardano is a research-driven blockchain.",alt_menu)
-
-        elif text=="7.4 Polkadot":
-
-            send(chat,"Polkadot connects multiple blockchains.",alt_menu)
-
-# ===================== STAKING =====================
-
-        elif text=="8️⃣ Staking":
-
-            send(chat,
-            "8️⃣ Staking\n\n"
-            "Staking allows users to earn rewards by "
-            "locking cryptocurrency in a blockchain network.",
-            staking_menu)
-
-        elif text=="8.1 What is Staking":
-
-            send(chat,"Staking helps secure blockchain networks.",staking_menu)
-
-        elif text=="8.2 Proof of Stake":
-
-            send(chat,"Proof of Stake selects validators based on stake.",staking_menu)
-
-        elif text=="8.3 Staking Rewards":
-
-            send(chat,"Validators receive rewards for validating blocks.",staking_menu)
-
-        elif text=="8.4 Staking Risks":
-
-            send(chat,"Risks include volatility and lock periods.",staking_menu)
-
-# ===================== PORTFOLIO =====================
-
-        elif text=="9️⃣ Portfolio":
-
-            send(chat,
-            "9️⃣ Portfolio Management\n\n"
-            "Managing a portfolio involves tracking "
-            "and balancing different crypto investments.",
-            portfolio_menu)
-
-        elif text=="9.1 Diversification":
-
-            send(chat,"Diversification spreads assets.",portfolio_menu)
-
-        elif text=="9.2 Long Term Investing":
-
-            send(chat,"Long term investing focuses on future growth.",portfolio_menu)
-
-        elif text=="9.3 Portfolio Tracking":
-
-            send(chat,"Tracking helps measure performance.",portfolio_menu)
-
-        elif text=="9.4 Rebalancing":
-
-            send(chat,"Rebalancing adjusts portfolio allocations.",portfolio_menu)
-
-# ===================== NEWS =====================
-
-        elif text=="🔟 News":
-
-            send(chat,
-            "🔟 Crypto News Sources\n\n"
-            "Select a news source to open the website.",
-            news_menu)
-
-        elif text=="10.1 CoinDesk":
-
-            send(chat,"https://www.coindesk.com")
-
-        elif text=="10.2 CoinTelegraph":
-
-            send(chat,"https://cointelegraph.com")
-
-        elif text=="10.3 Decrypt":
-
-            send(chat,"https://decrypt.co")
-
-        elif text=="10.4 Binance News":
-
-            send(chat,"https://www.binance.com/en/news")
-
 # ===================== AI =====================
 
         elif text=="1️⃣1️⃣ AI Assistant":
+
+            ai_mode[chat]=True
 
             send(chat,
             "1️⃣1️⃣ AI Assistant\n\n"
             "Ask any cryptocurrency question.")
 
+        elif chat in ai_mode and ai_mode[chat]:
+
+            try:
+
+                r=requests.post(
+                "https://api.groq.com/openai/v1/chat/completions",
+                headers={
+                "Authorization":f"Bearer {GROQ_API_KEY}",
+                "Content-Type":"application/json"
+                },
+                json={
+                "model":"llama-3.3-70b-versatile",
+                "messages":[
+                {"role":"system","content":"You are a crypto expert assistant."},
+                {"role":"user","content":text}
+                ]
+                })
+
+                answer=r.json()["choices"][0]["message"]["content"]
+
+                send(chat,answer)
+
+            except:
+
+                send(chat,"AI service unavailable.")
+
 # ===================== BACK =====================
 
         elif text=="⬅ Back":
 
+            ai_mode[chat]=False
             send(chat,"Main Menu",main_menu)
 
     return "ok"
