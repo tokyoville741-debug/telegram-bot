@@ -1,7 +1,5 @@
 import os
 import requests
-import threading
-import time
 from flask import Flask, request
 
 TOKEN = os.environ.get("BOT_TOKEN")
@@ -12,7 +10,6 @@ URL = f"https://api.telegram.org/bot{TOKEN}"
 app = Flask(__name__)
 
 ai_mode={}
-webhook_set=False
 
 
 # ================= SEND MESSAGE =================
@@ -131,91 +128,82 @@ language_menu=[
 def get_price(symbol):
 
     try:
-        r=requests.get(
-        f"https://api.binance.com/api/v3/ticker/price?symbol={symbol}"
-        )
+        r=requests.get(f"https://api.binance.com/api/v3/ticker/price?symbol={symbol}")
         return r.json()["price"]
-
     except:
         return "Unavailable"
 
 
-
 # ================= EDUCATIONAL TEXTS =================
 
-BLOCKCHAIN_TEXT = """⛓ WHAT IS BLOCKCHAIN?
+BLOCKCHAIN_TEXT="""⛓ WHAT IS BLOCKCHAIN?
 
 Blockchain is a decentralized digital ledger technology that records transactions across many computers in a secure and transparent way.
 
-Each transaction is grouped into a block. Once verified, it is linked to the previous block forming a chain.
+Each transaction is grouped into a block. Once verified it is linked to the previous block forming a chain.
 
 Blockchain provides decentralization, transparency and strong cryptographic security.
 """
 
-BITCOIN_TEXT = """₿ WHAT IS BITCOIN?
+BITCOIN_TEXT="""₿ WHAT IS BITCOIN?
 
-Bitcoin is the first cryptocurrency created in 2009 by Satoshi Nakamoto.
+Bitcoin is the first cryptocurrency ever created and remains the most widely recognized digital asset in the world. It was introduced in 2009 by an anonymous person or group using the name Satoshi Nakamoto.
 
-It allows people to send digital money without banks.
-
-Only 21 million bitcoins will ever exist which makes it scarce and often compared to digital gold.
+The main goal of Bitcoin was to create a decentralized digital currency that allows people to send money directly to each other without needing banks or financial intermediaries.
 """
 
-ETHEREUM_TEXT = """💎 WHAT IS ETHEREUM?
+ETHEREUM_TEXT="""💎 WHAT IS ETHEREUM?
 
-Ethereum is a programmable blockchain that allows developers to build decentralized applications.
+Ethereum is a blockchain platform that allows developers to build decentralized applications known as dApps.
 
-It introduced smart contracts which automatically execute agreements on the blockchain.
+One of Ethereum's most important innovations is the concept of smart contracts.
 """
 
-SPOT_TRADING_TEXT = """📊 SPOT TRADING
+SPOT_TRADING_TEXT="""📊 SPOT TRADING
 
 Spot trading means buying or selling crypto at the current market price.
 
 The asset is delivered instantly to your account.
 """
 
-FUTURES_TRADING_TEXT = """📈 FUTURES TRADING
+FUTURES_TRADING_TEXT="""📈 FUTURES TRADING
 
-Futures trading allows traders to speculate on price movements without owning the asset.
-
-It often involves leverage which increases both profits and risks.
+Futures trading allows traders to speculate on the future price of crypto without owning the asset.
 """
 
-TECHNICAL_ANALYSIS_TEXT = """📉 TECHNICAL ANALYSIS
+TECHNICAL_ANALYSIS_TEXT="""📉 TECHNICAL ANALYSIS
 
 Technical analysis studies charts and historical price data to predict market movements.
 """
 
-RISK_MANAGEMENT_TEXT = """⚠ RISK MANAGEMENT
+RISK_MANAGEMENT_TEXT="""⚠ RISK MANAGEMENT
 
-Risk management helps traders protect capital by controlling position size and using stop losses.
+Risk management helps traders protect capital and minimize losses.
 """
 
-STOP_LOSS_TEXT = """🛑 STOP LOSS
+STOP_LOSS_TEXT="""🛑 STOP LOSS
 
-A stop loss automatically closes a trade when the price reaches a specific level.
+A stop loss automatically closes a trade when price reaches a specific level.
 """
 
-POSITION_SIZE_TEXT = """📏 POSITION SIZE
+POSITION_SIZE_TEXT="""📏 POSITION SIZE
 
-Position sizing controls how much capital you risk on each trade.
+Position sizing determines how much capital you risk in a trade.
 """
-
 
 
 # ================= BOT =================
 
-@app.route(f"/{TOKEN}", methods=["POST"])
+@app.route(f"/{TOKEN}",methods=["POST"])
 def bot():
 
-    data = request.get_json()
+    data=request.get_json()
 
     if not data or "message" not in data:
         return "ok"
 
-    chat = data["message"]["chat"]["id"]
-    text = data["message"].get("text","")
+    chat=data["message"]["chat"]["id"]
+    text=data["message"].get("text","")
 
 
 
@@ -226,9 +214,20 @@ def bot():
         ai_mode[chat]=False
 
         send(chat,
-        "🚀 Welcome to OpenClaw AI Coach\n\n"
-        "Your intelligent assistant for learning and exploring the world of cryptocurrency.",
-        main_menu)
+"🚀 Welcome to OpenClaw AI Coach\n\n"
+"Your intelligent assistant for learning and exploring the world of cryptocurrency, trading, and blockchain technology.\n\n"
+"With OpenClaw AI Coach you can:\n"
+"📚 Learn crypto fundamentals\n"
+"📊 Understand trading strategies\n"
+"📉 Discover risk management techniques\n"
+"📈 Explore crypto charts\n"
+"🪙 Learn about altcoins\n"
+"💰 Understand staking and passive income\n"
+"📰 Stay updated with crypto news\n"
+"🤖 Ask the AI Assistant any question\n\n"
+"Whether you are a beginner or an experienced trader, this bot will help you understand the crypto ecosystem step by step.\n\n"
+"👇 Select a topic from the menu below.",
+main_menu)
 
 
 
@@ -241,10 +240,41 @@ def bot():
 
 
 
-# ================= LEARN =================
+# ================= MENUS =================
 
     elif text=="1 Learn":
-        send(chat,"Crypto learning section.",learn_menu)
+        send(chat,"Crypto Learning",learn_menu)
+
+    elif text=="2 Trading":
+        send(chat,"Trading Section",trading_menu)
+
+    elif text=="3 Risk":
+        send(chat,"Risk Section",risk_menu)
+
+    elif text=="4 Market":
+        send(chat,"Market Section",market_menu)
+
+    elif text=="5 Price":
+        send(chat,"Select a cryptocurrency.",price_menu)
+
+    elif text=="6 Charts":
+        send(chat,"Charts Section",charts_menu)
+
+    elif text=="7 Altcoins":
+        send(chat,"Altcoins Section",altcoins_menu)
+
+    elif text=="8 Staking":
+        send(chat,"Staking Section",staking_menu)
+
+    elif text=="9 Portfolio":
+        send(chat,"Portfolio Section",portfolio_menu)
+
+    elif text=="10 News":
+        send(chat,"News Sources",news_menu)
+
+
+
+# ================= EDUCATION =================
 
     elif text=="1.1 What is Blockchain":
         send(chat,BLOCKCHAIN_TEXT)
@@ -255,13 +285,6 @@ def bot():
     elif text=="1.3 What is Ethereum":
         send(chat,ETHEREUM_TEXT)
 
-
-
-# ================= TRADING =================
-
-    elif text=="2 Trading":
-        send(chat,"Trading section.",trading_menu)
-
     elif text=="2.1 Spot Trading":
         send(chat,SPOT_TRADING_TEXT)
 
@@ -270,13 +293,6 @@ def bot():
 
     elif text=="2.3 Technical Analysis":
         send(chat,TECHNICAL_ANALYSIS_TEXT)
-
-
-
-# ================= RISK =================
-
-    elif text=="3 Risk":
-        send(chat,"Risk management.",risk_menu)
 
     elif text=="3.1 Risk Management":
         send(chat,RISK_MANAGEMENT_TEXT)
@@ -289,18 +305,35 @@ def bot():
 
 
 
-# ================= PRICE =================
-
-    elif text=="5 Price":
-        send(chat,"Select a cryptocurrency.",price_menu)
+# ================= PRICES =================
 
     elif text=="5.1 BTC Price":
-        price=get_price("BTCUSDT")
-        send(chat,f"BTC Price: ${price}")
+        send(chat,f"BTC Price: ${get_price('BTCUSDT')}")
 
     elif text=="5.2 ETH Price":
-        price=get_price("ETHUSDT")
-        send(chat,f"ETH Price: ${price}")
+        send(chat,f"ETH Price: ${get_price('ETHUSDT')}")
+
+    elif text=="5.3 BNB Price":
+        send(chat,f"BNB Price: ${get_price('BNBUSDT')}")
+
+    elif text=="5.4 SOL Price":
+        send(chat,f"SOL Price: ${get_price('SOLUSDT')}")
+
+
+
+# ================= LANGUAGE =================
+
+    elif text=="Language":
+        send(chat,"Select language",language_menu)
+
+    elif text=="English":
+        send(chat,"Language set to English.")
+
+    elif text=="Français":
+        send(chat,"Langue définie sur Français.")
+
+    elif text=="Español":
+        send(chat,"Idioma configurado en Español.")
 
 
 
@@ -311,8 +344,8 @@ def bot():
         ai_mode[chat]=True
 
         send(chat,
-        "🤖 AI Assistant Activated\n\n"
-        "Ask any question about cryptocurrency.")
+"🤖 AI Assistant Activated\n\n"
+"Ask any question about cryptocurrency, trading or blockchain.")
 
 
 
@@ -322,7 +355,7 @@ def bot():
 
         try:
 
-            r = requests.post(
+            r=requests.post(
             "https://api.groq.com/openai/v1/chat/completions",
             headers={
             "Authorization":f"Bearer {GROQ_API_KEY}",
@@ -330,20 +363,15 @@ def bot():
             },
             json={
             "model":"llama3-70b-8192",
-            "messages":[
-            {"role":"user","content":text}
-            ]
+            "messages":[{"role":"user","content":text}]
             })
 
-            result=r.json()
+            reply=r.json()["choices"][0]["message"]["content"]
 
-            if "choices" in result:
-                reply=result["choices"][0]["message"]["content"]
-                send(chat,reply[:4000])
-            else:
-                send(chat,"⚠ AI error")
+            send(chat,reply[:4000])
 
-        except Exception as e:
+        except:
+
             send(chat,"⚠ AI unavailable.")
 
 
@@ -351,6 +379,6 @@ def bot():
 
 
 
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 10000))
-    app.run(host="0.0.0.0", port=port)
+if __name__=="__main__":
+    port=int(os.environ.get("PORT",10000))
+    app.run(host="0.0.0.0",port=port)
