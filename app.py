@@ -151,7 +151,8 @@ def get_price(symbol):
 
     except:
 
-        return "Unavailable"# ================= EDUCATIONAL TEXTS =================
+        return "Unavailable"
+        # ================= EDUCATIONAL TEXTS =================  
 
 
 BLOCKCHAIN_TEXT = """
@@ -284,36 +285,19 @@ Instead of investing all available funds into one trade, experienced traders div
 A common rule among professional traders is the 1–2% rule, which means risking only 1% or 2% of total capital on a single trade.
 
 By controlling position size, traders ensure that a single losing trade does not significantly damage their overall portfolio.
-"""# ================= BOT =================
+"""
+# ================= BOT =================
 
-# ================= HOME ROUTE =================
-
-@app.route("/")
-def home():
-    return "OpenClaw AI Coach Bot is running"
-
-
-# ================= WEBHOOK =================
-
-@app.route(f"/{TOKEN}",methods=["POST"])
+@app.route(f"/{TOKEN}", methods=["POST"])
 def bot():
 
-    data=request.get_json()
+    data = request.get_json()
 
-    if "message" not in data:
+    if not data or "message" not in data:
         return "ok"
 
-    chat=data["message"]["chat"]["id"]
-    text=data["message"].get("text","")
-
-
-    
-
-    
-        
-
-    
-    
+    chat = data["message"]["chat"]["id"]
+    text = data["message"].get("text","")
 
 
 # ================= START =================
@@ -365,195 +349,6 @@ def bot():
         send(chat,"Idioma configurado en Español.")
 
 
-# ================= LEARN =================
-
-    elif text=="1 Learn":
-        send(chat,"Crypto learning section.",learn_menu)
-
-    elif text=="1.1 What is Blockchain":
-        send(chat,BLOCKCHAIN_TEXT)
-
-    elif text=="1.2 What is Bitcoin":
-        send(chat,BITCOIN_TEXT)
-
-    elif text=="1.3 What is Ethereum":
-        send(chat,ETHEREUM_TEXT)
-
-
-# ================= TRADING =================
-
-    elif text=="2 Trading":
-        send(chat,"Trading education section.",trading_menu)
-
-    elif text=="2.1 Spot Trading":
-        send(chat,SPOT_TRADING_TEXT)
-
-    elif text=="2.2 Futures Trading":
-        send(chat,FUTURES_TRADING_TEXT)
-
-    elif text=="2.3 Technical Analysis":
-        send(chat,TECHNICAL_ANALYSIS_TEXT)
-
-
-# ================= RISK =================
-
-    elif text=="3 Risk":
-        send(chat,"Risk management education.",risk_menu)
-
-    elif text=="3.1 Risk Management":
-        send(chat,RISK_MANAGEMENT_TEXT)
-
-    elif text=="3.2 Stop Loss":
-        send(chat,STOP_LOSS_TEXT)
-
-    elif text=="3.3 Position Size":
-        send(chat,POSITION_SIZE_TEXT)
-
-
-# ================= MARKET =================
-
-    elif text=="4 Market":
-        send(chat,
-        "📊 MARKET STRUCTURE\n\n"
-        "Crypto markets move in cycles composed of bull markets, bear markets and consolidation phases.\n\n"
-        "Understanding market structure helps traders identify opportunities and avoid emotional decisions.",
-        market_menu)
-
-    elif text=="4.1 Bull Market":
-        send(chat,
-        "🐂 BULL MARKET\n\n"
-        "A bull market is a period where prices are generally rising and investor confidence is strong.\n\n"
-        "During bull markets, demand for cryptocurrencies increases and many new investors enter the market.")
-
-    elif text=="4.2 Bear Market":
-        send(chat,
-        "🐻 BEAR MARKET\n\n"
-        "A bear market is a prolonged period where prices decline and investor sentiment becomes negative.\n\n"
-        "These phases are common in financial markets and often follow large price increases.")
-
-    elif text=="4.3 Market Cycle":
-        send(chat,
-        "🔄 MARKET CYCLE\n\n"
-        "Markets usually follow cycles that include accumulation, expansion, distribution and decline phases.\n\n"
-        "Recognizing these stages helps investors make better strategic decisions.")
-
-
-# ================= PRICE =================
-
-    elif text=="5 Price":
-        send(chat,"Select a cryptocurrency.",price_menu)
-
-    elif text=="5.1 BTC Price":
-        price=get_price("BTCUSDT")
-        send(chat,f"BTC Price: ${price}")
-
-    elif text=="5.2 ETH Price":
-        price=get_price("ETHUSDT")
-        send(chat,f"ETH Price: ${price}")
-
-    elif text=="5.3 BNB Price":
-        price=get_price("BNBUSDT")
-        send(chat,f"BNB Price: ${price}")
-
-    elif text=="5.4 SOL Price":
-        price=get_price("SOLUSDT")
-        send(chat,f"SOL Price: ${price}")
-
-
-# ================= CHARTS =================
-
-    elif text=="6 Charts":
-        send(chat,"TradingView charts.",charts_menu)
-
-    elif text=="6.1 BTC Chart":
-        send(chat,"https://www.tradingview.com/symbols/BTCUSDT/")
-
-    elif text=="6.2 ETH Chart":
-        send(chat,"https://www.tradingview.com/symbols/ETHUSDT/")
-
-    elif text=="6.3 BNB Chart":
-        send(chat,"https://www.tradingview.com/symbols/BNBUSDT/")
-
-    elif text=="6.4 SOL Chart":
-        send(chat,"https://www.tradingview.com/symbols/SOLUSDT/")
-
-
-# ================= ALTCOINS =================
-
-    elif text=="7 Altcoins":
-        send(chat,
-        "Altcoins are cryptocurrencies created after Bitcoin. Many altcoins aim to improve blockchain technology or introduce new features.",
-        altcoins_menu)
-
-    elif text=="7.1 What are Altcoins":
-        send(chat,
-        "Altcoins represent all cryptocurrencies other than Bitcoin. Examples include Ethereum, Solana and Cardano.")
-
-    elif text=="7.2 Popular Altcoins":
-        send(chat,
-        "Some popular altcoins include Ethereum, Solana, BNB, Cardano and Avalanche.")
-
-    elif text=="7.3 Altcoin Season":
-        send(chat,
-        "Altcoin season is a market phase where altcoins outperform Bitcoin.")
-
-
-# ================= STAKING =================
-
-    elif text=="8 Staking":
-        send(chat,"Learn about staking and passive income.",staking_menu)
-
-    elif text=="8.1 What is Staking":
-        send(chat,
-        "Staking allows users to lock their cryptocurrency in a blockchain network to help validate transactions and earn rewards.")
-
-    elif text=="8.2 Staking Rewards":
-        send(chat,
-        "Staking rewards are incentives paid to users who help secure a Proof-of-Stake network.")
-
-    elif text=="8.3 Proof of Stake":
-        send(chat,
-        "Proof of Stake is a blockchain consensus mechanism where validators are chosen based on the amount of crypto they stake.")
-
-
-# ================= PORTFOLIO =================
-
-    elif text=="9 Portfolio":
-        send(chat,
-        "Portfolio management helps investors balance risk and potential returns by allocating capital across different assets.",
-        portfolio_menu)
-
-    elif text=="9.1 Diversification":
-        send(chat,"Diversification means spreading investments across multiple cryptocurrencies to reduce overall risk.")
-
-    elif text=="9.2 Long Term Investing":
-        send(chat,"Long term investing focuses on holding assets for months or years rather than trading frequently.")
-
-    elif text=="9.3 Portfolio Tracking":
-        send(chat,"Portfolio tracking helps investors monitor performance and manage asset allocation.")
-
-    elif text=="9.4 Rebalancing":
-        send(chat,"Rebalancing is the process of adjusting portfolio allocations to maintain a desired risk level.")
-
-
-# ================= NEWS =================
-
-    elif text=="10 News":
-        send(chat,"Crypto news sources.",news_menu)
-
-    elif text=="10.1 CoinDesk":
-        send(chat,"https://www.coindesk.com")
-
-    elif text=="10.2 CoinTelegraph":
-        send(chat,"https://cointelegraph.com")
-
-    elif text=="10.3 Decrypt":
-        send(chat,"https://decrypt.co")
-
-    elif text=="10.4 Binance News":
-        send(chat,"https://www.binance.com/en/news")
-
-
 # ================= AI ASSISTANT =================
 
     elif text=="11 AI Assistant":
@@ -565,11 +360,13 @@ def bot():
         "Ask any question about cryptocurrency, trading or blockchain.")
 
 
+# ================= AI RESPONSE =================
+
     elif ai_mode.get(chat):
 
         try:
 
-            r=requests.post(
+            r = requests.post(
             "https://api.groq.com/openai/v1/chat/completions",
             headers={
             "Authorization":f"Bearer {GROQ_API_KEY}",
@@ -577,10 +374,12 @@ def bot():
             },
             json={
             "model":"llama3-70b-8192",
-            "messages":[{"role":"user","content":text}]
+            "messages":[
+            {"role":"user","content":text}
+            ]
             })
 
-            reply=r.json()["choices"][0]["message"]["content"]
+            reply = r.json()["choices"][0]["message"]["content"]
 
             send(chat,reply[:4000])
 
