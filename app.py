@@ -1,171 +1,325 @@
 import os
 import requests
+import threading
+import time
 from flask import Flask, request
+
+TOKEN = os.environ.get("BOT_TOKEN")
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
+
+URL = f"https://api.telegram.org/bot{TOKEN}"
 
 app = Flask(__name__)
 
-TOKEN = os.environ.get("BOT_TOKEN")
-URL = f"https://api.telegram.org/bot{TOKEN}"
-
-GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
-
-user_lang = {}
-webhook_set = False
 ai_mode = {}
 
-# ===================== MENUS =====================
+webhook_set = False
 
-main_menu = {
-"keyboard":[
-["1️⃣ Learn","2️⃣ Trading"],
-["3️⃣ Risk","4️⃣ Market"],
-["5️⃣ Price","6️⃣ Charts"],
-["7️⃣ Altcoins","8️⃣ Staking"],
-["9️⃣ Portfolio","🔟 News"],
-["1️⃣1️⃣ AI Assistant","🌐 Language"]
-],
-"resize_keyboard":True
-}
 
-# ===================== SEND FUNCTION =====================
+# ================= SEND MESSAGE =================
+def send(chat, text, keyboard=None):
 
-def send(chat,text,menu=None):
-
-    payload={
-    "chat_id":chat,
-    "text":text
+    data = {
+        "chat_id": chat,
+        "text": text
     }
 
-    if menu:
-        payload["reply_markup"]=menu
+    if keyboard:
+        data["reply_markup"] = {
+            "keyboard": keyboard,
+            "resize_keyboard": True
+        }
 
-    requests.post(URL+"/sendMessage",json=payload)
+    requests.post(URL + "/sendMessage", json=data)
 
-# ===================== WEBHOOK =====================
 
-@app.route("/",methods=["GET"])
-def home():
-    return "Bot running"
+# ================= MENUS =================
 
-@app.route(f"/{TOKEN}",methods=["POST"])
+main_menu = [
+["1 Learn","2 Trading"],
+["3 Risk","4 Market"],
+["5 Price","6 Charts"],
+["7 Altcoins","8 Staking"],
+["9 Portfolio","10 News"],
+["11 AI Assistant"],
+["Language"]
+]
+
+charts_menu = [
+["6.1 BTC Chart","6.2 ETH Chart"],
+["6.3 BNB Chart","6.4 SOL Chart"],
+["⬅ Back"]
+]
+
+news_menu = [
+["10.1 CoinDesk"],
+["10.2 CoinTelegraph"],
+["10.3 Decrypt"],
+["10.4 Binance News"],
+["⬅ Back"]
+]
+
+learn_menu = [
+["1.1 What is Blockchain"],
+["1.2 What is Bitcoin"],
+["1.3 What is Ethereum"],
+["⬅ Back"]
+]
+
+trading_menu = [
+["2.1 Spot Trading"],
+["2.2 Futures Trading"],
+["2.3 Technical Analysis"],
+["⬅ Back"]
+]
+
+portfolio_menu = [
+["9.1 Diversification"],
+["9.2 Long Term Investing"],
+["9.3 Portfolio Tracking"],
+["9.4 Rebalancing"],
+["⬅ Back"]
+]
+
+language_menu = [
+["English"],
+["Français"],
+["Español"],
+["⬅ Back"]
+]
+
+
+# ================= WEBHOOK =================
+
+@app.route(f"/{TOKEN}", methods=["POST"])
 def bot():
 
-    data=request.json
+    data = request.get_json()
 
-    if "message" in data:
+    if "message" not in data:
+        return "ok"
 
-        chat=data["message"]["chat"]["id"]
-        text=data["message"].get("text","")
+    chat = data["message"]["chat"]["id"]
+    text = data["message"].get("text","")
 
-        if chat not in user_lang:
-            user_lang[chat]="EN"
+    # ================= START =================
 
-# ===================== PORTFOLIO =====================
+    if text == "/start":
 
-        if text=="9️⃣ Portfolio":
+        ai_mode[chat] = False
 
-            send(chat,
-            "9️⃣ Portfolio Management\n\n"
-            "Managing a portfolio involves tracking "
-            "and balancing different crypto investments.",
-            portfolio_menu)
+        send(chat,
+        "Welcome to OpenClaw AI Coach.\n\n"
+        "Select a topic from the menu.",
+        main_menu)
 
-        elif text=="9.1 Diversification":
 
-            send(chat,"Diversification spreads assets.",portfolio_menu)
+    # ================= BACK =================
 
-        elif text=="9.2 Long Term Investing":
+    elif text == "⬅ Back":
 
-            send(chat,"Long term investing focuses on future growth.",portfolio_menu)
+        ai_mode[chat] = False
 
-        elif text=="9.3 Portfolio Tracking":
+        send(chat,"Main Menu",main_menu)
 
-            send(chat,"Tracking helps measure performance.",portfolio_menu)
 
-        elif text=="9.4 Rebalancing":
+    # ================= LEARN =================
 
-            send(chat,"Rebalancing adjusts portfolio allocations.",portfolio_menu)
+    elif text == "1 Learn":
 
-# ===================== NEWS =====================
+        send(chat,
+        "1 Learn\n\n"
+        "This section explains crypto basics.",
+        learn_menu)
 
-        elif text=="🔟 News":
+    elif text == "1.1 What is Blockchain":
 
-            send(chat,
-            "🔟 Crypto News Sources\n\n"
-            "Select a news source to open the website.",
-            news_menu)
+        send(chat,
+        "Blockchain is a decentralized ledger "
+        "used to record transactions.")
 
-        elif text=="10.1 CoinDesk":
+    elif text == "1.2 What is Bitcoin":
 
-            send(chat,"https://www.coindesk.com")
+        send(chat,
+        "Bitcoin is the first cryptocurrency "
+        "created in 2009.")
 
-        elif text=="10.2 CoinTelegraph":
+    elif text == "1.3 What is Ethereum":
 
-            send(chat,"https://cointelegraph.com")
+        send(chat,
+        "Ethereum is a blockchain that allows "
+        "smart contracts.")
 
-        elif text=="10.3 Decrypt":
 
-            send(chat,"https://decrypt.co")
+    # ================= TRADING =================
 
-        elif text=="10.4 Binance News":
+    elif text == "2 Trading":
 
-            send(chat,"https://www.binance.com/en/news")
+        send(chat,
+        "2 Trading\n\n"
+        "Learn trading strategies.",
+        trading_menu)
 
-# ===================== AI =====================
+    elif text == "2.1 Spot Trading":
 
-        elif text=="1️⃣1️⃣ AI Assistant":
+        send(chat,
+        "Spot trading means buying crypto "
+        "at current market price.")
 
-            ai_mode[chat]=True
+    elif text == "2.2 Futures Trading":
 
-            send(chat,
-            "1️⃣1️⃣ AI Assistant\n\n"
-            "Ask any cryptocurrency question.\n\n"
-            "Press ⬅ Back to exit AI mode.")
+        send(chat,
+        "Futures trading allows leveraged positions.")
 
-# ===================== AI RESPONSE =====================
+    elif text == "2.3 Technical Analysis":
 
-        elif chat in ai_mode and ai_mode[chat] and text not in [
-        "⬅ Back",
-        "1️⃣ Learn","2️⃣ Trading","3️⃣ Risk","4️⃣ Market",
-        "5️⃣ Price","6️⃣ Charts","7️⃣ Altcoins","8️⃣ Staking",
-        "9️⃣ Portfolio","🔟 News","🌐 Language"
-        ]:
+        send(chat,
+        "Technical analysis studies charts "
+        "to predict price movement.")
 
-            try:
 
-                r=requests.post(
-                "https://api.groq.com/openai/v1/chat/completions",
-                headers={
-                "Authorization":f"Bearer {GROQ_API_KEY}",
-                "Content-Type":"application/json"
-                },
-                json={
-                "model":"llama-3.3-70b-versatile",
-                "messages":[
-                {"role":"system","content":"You are a crypto expert assistant."},
-                {"role":"user","content":text}
-                ]
-                })
+    # ================= CHARTS =================
 
-                answer=r.json()["choices"][0]["message"]["content"]
+    elif text == "6 Charts":
 
-                send(chat,answer)
+        send(chat,
+        "6 Charts\n\n"
+        "Open charts on TradingView.",
+        charts_menu)
 
-            except:
+    elif text == "6.1 BTC Chart":
 
-                send(chat,"AI service unavailable.")
+        send(chat,"https://www.tradingview.com/symbols/BTCUSDT/")
 
-# ===================== BACK =====================
+    elif text == "6.2 ETH Chart":
 
-        elif text=="⬅ Back":
+        send(chat,"https://www.tradingview.com/symbols/ETHUSDT/")
 
-            ai_mode[chat]=False
+    elif text == "6.3 BNB Chart":
 
-            send(chat,"Main Menu",main_menu)
+        send(chat,"https://www.tradingview.com/symbols/BNBUSDT/")
+
+    elif text == "6.4 SOL Chart":
+
+        send(chat,"https://www.tradingview.com/symbols/SOLUSDT/")
+
+
+    # ================= PORTFOLIO =================
+
+    elif text == "9 Portfolio":
+
+        send(chat,
+        "9 Portfolio Management\n\n"
+        "Managing a portfolio involves tracking "
+        "different assets.",
+        portfolio_menu)
+
+    elif text=="9.1 Diversification":
+
+        send(chat,"Diversification spreads assets.")
+
+    elif text=="9.2 Long Term Investing":
+
+        send(chat,"Long term investing focuses on growth.")
+
+    elif text=="9.3 Portfolio Tracking":
+
+        send(chat,"Tracking helps measure performance.")
+
+    elif text=="9.4 Rebalancing":
+
+        send(chat,"Rebalancing adjusts allocations.")
+
+
+    # ================= NEWS =================
+
+    elif text=="10 News":
+
+        send(chat,
+        "10 Crypto News Sources\n\n"
+        "Select a news source.",
+        news_menu)
+
+    elif text=="10.1 CoinDesk":
+
+        send(chat,"https://www.coindesk.com")
+
+    elif text=="10.2 CoinTelegraph":
+
+        send(chat,"https://cointelegraph.com")
+
+    elif text=="10.3 Decrypt":
+
+        send(chat,"https://decrypt.co")
+
+    elif text=="10.4 Binance News":
+
+        send(chat,"https://www.binance.com/en/news")
+
+
+    # ================= AI =================
+
+    elif text == "11 AI Assistant":
+
+        ai_mode[chat] = True
+
+        send(chat,
+        "AI Assistant\n\n"
+        "Ask any crypto question.\n\n"
+        "Press Back to exit.")
+
+
+    elif chat in ai_mode and ai_mode[chat]:
+
+        try:
+
+            r = requests.post(
+            "https://api.groq.com/openai/v1/chat/completions",
+            headers={
+            "Authorization": f"Bearer {GROQ_API_KEY}",
+            "Content-Type":"application/json"
+            },
+            json={
+            "model":"llama-3.3-70b-versatile",
+            "messages":[
+            {"role":"system","content":"You are a crypto expert assistant."},
+            {"role":"user","content":text}
+            ]
+            })
+
+            answer = r.json()["choices"][0]["message"]["content"]
+
+            send(chat,answer)
+
+        except:
+
+            send(chat,"AI service unavailable.")
+
+
+    # ================= LANGUAGE =================
+
+    elif text == "Language":
+
+        send(chat,
+        "Choose your preferred language.",
+        language_menu)
+
+    elif text == "Français":
+
+        send(chat,"Langue changée en Français.")
+
+    elif text == "Español":
+
+        send(chat,"Idioma cambiado a Español.")
+
+    elif text == "English":
+
+        send(chat,"Language set to English.")
 
     return "ok"
 
-# ===================== WEBHOOK =====================
+
+# ================= WEBHOOK SETUP =================
 
 @app.before_request
 def setup_webhook():
@@ -174,16 +328,36 @@ def setup_webhook():
 
     if not webhook_set:
 
-        url=os.environ.get("RENDER_EXTERNAL_URL")+f"/{TOKEN}"
+        url = os.environ.get("RENDER_EXTERNAL_URL") + f"/{TOKEN}"
 
-        requests.get(URL+"/setWebhook",params={"url":url})
+        requests.get(URL + "/setWebhook", params={"url":url})
 
-        webhook_set=True
+        webhook_set = True
 
-# ===================== RUN =====================
 
-if __name__=="__main__":
+# ================= ANTI SLEEP =================
 
-    port=int(os.environ.get("PORT",10000))
+def keep_alive():
 
-    app.run(host="0.0.0.0",port=port)
+    while True:
+
+        try:
+
+            requests.get(os.environ.get("RENDER_EXTERNAL_URL"))
+
+        except:
+            pass
+
+        time.sleep(300)
+
+
+threading.Thread(target=keep_alive).start()
+
+
+# ================= RUN =================
+
+if __name__ == "__main__":
+
+    port = int(os.environ.get("PORT",10000))
+
+    app.run(host="0.0.0.0", port=port)
