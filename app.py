@@ -11,7 +11,6 @@ app = Flask(__name__)
 
 ai_mode={}
 
-
 # ================= SEND MESSAGE =================
 
 def send(chat,text,keyboard=None):
@@ -29,8 +28,6 @@ def send(chat,text,keyboard=None):
 
     requests.post(URL+"/sendMessage",json=data)
 
-
-
 # ================= MAIN MENU =================
 
 main_menu=[
@@ -42,7 +39,6 @@ main_menu=[
 ["11 AI Assistant"],
 ["Language"]
 ]
-
 
 # ================= SUB MENUS =================
 
@@ -122,7 +118,6 @@ language_menu=[
 ["⬅ Back"]
 ]
 
-
 # ================= PRICE FUNCTION =================
 
 def get_price(symbol):
@@ -133,64 +128,59 @@ def get_price(symbol):
     except:
         return "Unavailable"
 
+# ================= EDUCATION TEXTS =================
 
-# ================= EDUCATIONAL TEXTS =================
+BLOCKCHAIN_TEXT="Blockchain is a decentralized ledger used to record transactions securely."
 
-BLOCKCHAIN_TEXT="""⛓ WHAT IS BLOCKCHAIN?
+BITCOIN_TEXT="Bitcoin is the first cryptocurrency created in 2009 by Satoshi Nakamoto."
 
-Blockchain is a decentralized digital ledger technology that records transactions across many computers in a secure and transparent way.
+ETHEREUM_TEXT="Ethereum is a blockchain platform allowing smart contracts and decentralized apps."
 
-Each transaction is grouped into a block. Once verified it is linked to the previous block forming a chain.
+SPOT_TRADING_TEXT="Spot trading means buying or selling crypto instantly at market price."
 
-Blockchain provides decentralization, transparency and strong cryptographic security.
-"""
+FUTURES_TRADING_TEXT="Futures trading allows speculation on price movements with leverage."
 
-BITCOIN_TEXT="""₿ WHAT IS BITCOIN?
+TECHNICAL_ANALYSIS_TEXT="Technical analysis studies price charts to predict market movements."
 
-Bitcoin is the first cryptocurrency ever created and remains the most widely recognized digital asset in the world. It was introduced in 2009 by an anonymous person or group using the name Satoshi Nakamoto.
+RISK_MANAGEMENT_TEXT="Risk management protects traders from large losses."
 
-The main goal of Bitcoin was to create a decentralized digital currency that allows people to send money directly to each other without needing banks or financial intermediaries.
-"""
+STOP_LOSS_TEXT="A stop loss automatically closes a trade when price hits a specific level."
 
-ETHEREUM_TEXT="""💎 WHAT IS ETHEREUM?
+POSITION_SIZE_TEXT="Position sizing controls how much capital is used in each trade."
 
-Ethereum is a blockchain platform that allows developers to build decentralized applications known as dApps.
+BULL_MARKET="A bull market is a period where prices are rising."
 
-One of Ethereum's most important innovations is the concept of smart contracts.
-"""
+BEAR_MARKET="A bear market is a period where prices are falling."
 
-SPOT_TRADING_TEXT="""📊 SPOT TRADING
+MARKET_CYCLE="Market cycles include accumulation, uptrend, distribution and downtrend."
 
-Spot trading means buying or selling crypto at the current market price.
+ALTCOINS_TEXT="Altcoins are cryptocurrencies other than Bitcoin."
 
-The asset is delivered instantly to your account.
-"""
+POPULAR_ALTCOINS="Popular altcoins include ETH, BNB, SOL, XRP."
 
-FUTURES_TRADING_TEXT="""📈 FUTURES TRADING
+ALTCOIN_SEASON="Altcoin season occurs when altcoins outperform Bitcoin."
 
-Futures trading allows traders to speculate on the future price of crypto without owning the asset.
-"""
+STAKING_TEXT="Staking allows users to earn rewards by locking crypto."
 
-TECHNICAL_ANALYSIS_TEXT="""📉 TECHNICAL ANALYSIS
+STAKING_REWARDS="Staking rewards are incentives for securing PoS networks."
 
-Technical analysis studies charts and historical price data to predict market movements.
-"""
+PROOF_OF_STAKE="Proof of Stake is a consensus mechanism replacing mining."
 
-RISK_MANAGEMENT_TEXT="""⚠ RISK MANAGEMENT
+DIVERSIFICATION="Diversification spreads investments across assets."
 
-Risk management helps traders protect capital and minimize losses.
-"""
+LONG_TERM="Long term investing means holding assets for years."
 
-STOP_LOSS_TEXT="""🛑 STOP LOSS
+PORTFOLIO_TRACK="Portfolio tracking helps monitor investments."
 
-A stop loss automatically closes a trade when price reaches a specific level.
-"""
+REBALANCING="Rebalancing adjusts asset allocations."
 
-POSITION_SIZE_TEXT="""📏 POSITION SIZE
+COINDESK="https://coindesk.com"
 
-Position sizing determines how much capital you risk in a trade.
-"""
+COINTELEGRAPH="https://cointelegraph.com"
 
+DECRYPT="https://decrypt.co"
+
+BINANCE_NEWS="https://www.binance.com/en/news"
 
 # ================= BOT =================
 
@@ -204,8 +194,6 @@ def bot():
 
     chat=data["message"]["chat"]["id"]
     text=data["message"].get("text","")
-
-
 
 # ================= START =================
 
@@ -225,25 +213,19 @@ def bot():
 "💰 Understand staking and passive income\n"
 "📰 Stay updated with crypto news\n"
 "🤖 Ask the AI Assistant any question\n\n"
-"Whether you are a beginner or an experienced trader, this bot will help you understand the crypto ecosystem step by step.\n\n"
 "👇 Select a topic from the menu below.",
 main_menu)
-
-
 
 # ================= BACK =================
 
     elif text=="⬅ Back":
-
         ai_mode[chat]=False
         send(chat,"Main Menu",main_menu)
-
-
 
 # ================= MENUS =================
 
     elif text=="1 Learn":
-        send(chat,"Crypto Learning",learn_menu)
+        send(chat,"Learning Section",learn_menu)
 
     elif text=="2 Trading":
         send(chat,"Trading Section",trading_menu)
@@ -255,10 +237,10 @@ main_menu)
         send(chat,"Market Section",market_menu)
 
     elif text=="5 Price":
-        send(chat,"Select a cryptocurrency.",price_menu)
+        send(chat,"Select crypto",price_menu)
 
     elif text=="6 Charts":
-        send(chat,"Charts Section",charts_menu)
+        send(chat,"Charts coming soon")
 
     elif text=="7 Altcoins":
         send(chat,"Altcoins Section",altcoins_menu)
@@ -272,9 +254,7 @@ main_menu)
     elif text=="10 News":
         send(chat,"News Sources",news_menu)
 
-
-
-# ================= EDUCATION =================
+# ================= CONTENT =================
 
     elif text=="1.1 What is Blockchain":
         send(chat,BLOCKCHAIN_TEXT)
@@ -303,7 +283,56 @@ main_menu)
     elif text=="3.3 Position Size":
         send(chat,POSITION_SIZE_TEXT)
 
+    elif text=="4.1 Bull Market":
+        send(chat,BULL_MARKET)
 
+    elif text=="4.2 Bear Market":
+        send(chat,BEAR_MARKET)
+
+    elif text=="4.3 Market Cycle":
+        send(chat,MARKET_CYCLE)
+
+    elif text=="7.1 What are Altcoins":
+        send(chat,ALTCOINS_TEXT)
+
+    elif text=="7.2 Popular Altcoins":
+        send(chat,POPULAR_ALTCOINS)
+
+    elif text=="7.3 Altcoin Season":
+        send(chat,ALTCOIN_SEASON)
+
+    elif text=="8.1 What is Staking":
+        send(chat,STAKING_TEXT)
+
+    elif text=="8.2 Staking Rewards":
+        send(chat,STAKING_REWARDS)
+
+    elif text=="8.3 Proof of Stake":
+        send(chat,PROOF_OF_STAKE)
+
+    elif text=="9.1 Diversification":
+        send(chat,DIVERSIFICATION)
+
+    elif text=="9.2 Long Term Investing":
+        send(chat,LONG_TERM)
+
+    elif text=="9.3 Portfolio Tracking":
+        send(chat,PORTFOLIO_TRACK)
+
+    elif text=="9.4 Rebalancing":
+        send(chat,REBALANCING)
+
+    elif text=="10.1 CoinDesk":
+        send(chat,COINDESK)
+
+    elif text=="10.2 CoinTelegraph":
+        send(chat,COINTELEGRAPH)
+
+    elif text=="10.3 Decrypt":
+        send(chat,DECRYPT)
+
+    elif text=="10.4 Binance News":
+        send(chat,BINANCE_NEWS)
 
 # ================= PRICES =================
 
@@ -319,37 +348,13 @@ main_menu)
     elif text=="5.4 SOL Price":
         send(chat,f"SOL Price: ${get_price('SOLUSDT')}")
 
-
-
-# ================= LANGUAGE =================
-
-    elif text=="Language":
-        send(chat,"Select language",language_menu)
-
-    elif text=="English":
-        send(chat,"Language set to English.")
-
-    elif text=="Français":
-        send(chat,"Langue définie sur Français.")
-
-    elif text=="Español":
-        send(chat,"Idioma configurado en Español.")
-
-
-
-# ================= AI ASSISTANT =================
+# ================= AI =================
 
     elif text=="11 AI Assistant":
 
         ai_mode[chat]=True
 
-        send(chat,
-"🤖 AI Assistant Activated\n\n"
-"Ask any question about cryptocurrency, trading or blockchain.")
-
-
-
-# ================= AI RESPONSE =================
+        send(chat,"🤖 AI Assistant Activated\nAsk anything about crypto.")
 
     elif ai_mode.get(chat):
 
@@ -362,7 +367,7 @@ main_menu)
             "Content-Type":"application/json"
             },
             json={
-            "model":"llama3-70b-8192",
+            "model":"llama3-8b-8192",
             "messages":[{"role":"user","content":text}]
             })
 
@@ -371,13 +376,9 @@ main_menu)
             send(chat,reply[:4000])
 
         except:
-
             send(chat,"⚠ AI unavailable.")
 
-
     return "ok"
-
-
 
 if __name__=="__main__":
     port=int(os.environ.get("PORT",10000))
