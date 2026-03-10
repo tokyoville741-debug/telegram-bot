@@ -547,15 +547,17 @@ main_menu)
         try:
 
             r = requests.post(
-            "https://api.groq.com/openai/v1/chat/completions",
-            headers={
-            "Authorization":f"Bearer {GROQ_API_KEY}",
-            "Content-Type":"application/json"
-            },
-            json={
-            "model":"llama3-8b-8192",
-            "messages":[{"role":"user","content":text}]
-            })
+    "https://api.groq.com/openai/v1/chat/completions",
+    headers={
+        "Authorization": f"Bearer {GROQ_API_KEY}",
+        "Content-Type": "application/json"
+    },
+    json={
+        "model": "llama3-8b-8192",
+        "messages":[{"role":"user","content":text}]
+    },
+    timeout=20
+            )
 
             reply = r.json()["choices"][0]["message"]["content"]
 
