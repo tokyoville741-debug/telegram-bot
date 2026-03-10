@@ -216,6 +216,35 @@ def bot():
             user_lang[chat]="ES"
             send(chat,"Idioma cambiado a Español.",main_menu)
 
+# ===================== MAIN SECTIONS =====================
+
+        elif text=="1️⃣ Learn":
+            send(chat,"1️⃣ Crypto Learning\n\nChoose a lesson.",learn_menu)
+
+        elif text=="2️⃣ Trading":
+            send(chat,"2️⃣ Trading Strategies\n\nChoose a lesson.",trading_menu)
+
+        elif text=="3️⃣ Risk":
+            send(chat,"3️⃣ Risk Management\n\nChoose a lesson.",risk_menu)
+
+        elif text=="4️⃣ Market":
+            send(chat,"4️⃣ Market Analysis\n\nChoose a lesson.",market_menu)
+
+        elif text=="6️⃣ Charts":
+            send(chat,"6️⃣ Crypto Charts\n\nSelect a chart.",chart_menu)
+
+        elif text=="7️⃣ Altcoins":
+            send(chat,"7️⃣ Altcoins\n\nChoose a coin.",alt_menu)
+
+        elif text=="8️⃣ Staking":
+            send(chat,"8️⃣ Staking\n\nChoose a lesson.",staking_menu)
+
+        elif text=="9️⃣ Portfolio":
+            send(chat,"9️⃣ Portfolio Management\n\nChoose a lesson.",portfolio_menu)
+
+        elif text=="🔟 News":
+            send(chat,"🔟 Crypto News\n\nSelect a source.",news_menu)
+
 # ===================== PRICE =====================
 
         elif text=="5️⃣ Price":
@@ -227,19 +256,15 @@ def bot():
             price_menu)
 
         elif text=="5.1 BTC":
-
             send(chat,f"Bitcoin Price: ${price('btc-bitcoin')}")
 
         elif text=="5.2 ETH":
-
             send(chat,f"Ethereum Price: ${price('eth-ethereum')}")
 
         elif text=="5.3 BNB":
-
             send(chat,f"BNB Price: ${price('bnb-binance-coin')}")
 
         elif text=="5.4 SOL":
-
             send(chat,f"Solana Price: ${price('sol-solana')}")
 
 # ===================== AI =====================
@@ -251,7 +276,8 @@ def bot():
             send(chat,
             "1️⃣1️⃣ AI Assistant\n\n"
             "Ask any cryptocurrency question.\n\n"
-            "Press ⬅ Back to exit AI mode.")
+            "Press ⬅ Back to exit AI mode.",
+            main_menu)
 
         elif chat in ai_mode and ai_mode[chat] and text not in [
         "⬅ Back",
