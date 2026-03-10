@@ -17,20 +17,21 @@ ai_mode = {}
 
 main_menu = {
 "keyboard":[
-["1️⃣ Learn","2️⃣ Trading"],
-["3️⃣ Risk","4️⃣ Market"],
-["5️⃣ Price","6️⃣ Charts"],
-["7️⃣ Altcoins","8️⃣ Staking"],
-["9️⃣ Portfolio","🔟 News"],
-["1️⃣1️⃣ AI Assistant","🌐 Language"]
+["1️⃣ Start","2️⃣ Learn"],
+["3️⃣ Trading","4️⃣ Risk"],
+["5️⃣ Market","6️⃣ Price"],
+["7️⃣ Charts","8️⃣ Altcoins"],
+["9️⃣ Staking","🔟 Portfolio"],
+["1️⃣1️⃣ News","1️⃣2️⃣ AI Assistant"],
+["🌐 Language"]
 ],
 "resize_keyboard":True
 }
 
 learn_menu = {
 "keyboard":[
-["1.1 Blockchain","1.2 Bitcoin"],
-["1.3 Wallet","1.4 DeFi"],
+["2.1 Blockchain","2.2 Bitcoin"],
+["2.3 Wallet","2.4 DeFi"],
 ["⬅ Back"]
 ],
 "resize_keyboard":True
@@ -38,8 +39,8 @@ learn_menu = {
 
 trading_menu = {
 "keyboard":[
-["2.1 Spot Trading","2.2 Futures"],
-["2.3 Day Trading","2.4 Swing Trading"],
+["3.1 Spot Trading","3.2 Futures"],
+["3.3 Day Trading","3.4 Swing Trading"],
 ["⬅ Back"]
 ],
 "resize_keyboard":True
@@ -47,8 +48,8 @@ trading_menu = {
 
 risk_menu = {
 "keyboard":[
-["3.1 Stop Loss","3.2 Position Size"],
-["3.3 Risk Reward","3.4 Diversification"],
+["4.1 Stop Loss","4.2 Position Size"],
+["4.3 Risk Reward","4.4 Diversification"],
 ["⬅ Back"]
 ],
 "resize_keyboard":True
@@ -56,8 +57,8 @@ risk_menu = {
 
 market_menu = {
 "keyboard":[
-["4.1 Bull Market","4.2 Bear Market"],
-["4.3 Market Cap","4.4 Liquidity"],
+["5.1 Bull Market","5.2 Bear Market"],
+["5.3 Market Cap","5.4 Liquidity"],
 ["⬅ Back"]
 ],
 "resize_keyboard":True
@@ -65,8 +66,8 @@ market_menu = {
 
 price_menu = {
 "keyboard":[
-["5.1 BTC","5.2 ETH"],
-["5.3 BNB","5.4 SOL"],
+["6.1 BTC","6.2 ETH"],
+["6.3 BNB","6.4 SOL"],
 ["⬅ Back"]
 ],
 "resize_keyboard":True
@@ -74,8 +75,8 @@ price_menu = {
 
 chart_menu = {
 "keyboard":[
-["6.1 BTC Chart","6.2 ETH Chart"],
-["6.3 BNB Chart","6.4 SOL Chart"],
+["7.1 BTC Chart","7.2 ETH Chart"],
+["7.3 BNB Chart","7.4 SOL Chart"],
 ["⬅ Back"]
 ],
 "resize_keyboard":True
@@ -83,8 +84,8 @@ chart_menu = {
 
 alt_menu = {
 "keyboard":[
-["7.1 Ethereum","7.2 Solana"],
-["7.3 Cardano","7.4 Polkadot"],
+["8.1 Ethereum","8.2 Solana"],
+["8.3 Cardano","8.4 Polkadot"],
 ["⬅ Back"]
 ],
 "resize_keyboard":True
@@ -92,8 +93,8 @@ alt_menu = {
 
 staking_menu = {
 "keyboard":[
-["8.1 What is Staking","8.2 Proof of Stake"],
-["8.3 Staking Rewards","8.4 Staking Risks"],
+["9.1 What is Staking","9.2 Proof of Stake"],
+["9.3 Staking Rewards","9.4 Staking Risks"],
 ["⬅ Back"]
 ],
 "resize_keyboard":True
@@ -101,8 +102,8 @@ staking_menu = {
 
 portfolio_menu = {
 "keyboard":[
-["9.1 Diversification","9.2 Long Term Investing"],
-["9.3 Portfolio Tracking","9.4 Rebalancing"],
+["10.1 Diversification","10.2 Long Term Investing"],
+["10.3 Portfolio Tracking","10.4 Rebalancing"],
 ["⬅ Back"]
 ],
 "resize_keyboard":True
@@ -110,8 +111,8 @@ portfolio_menu = {
 
 news_menu = {
 "keyboard":[
-["10.1 CoinDesk","10.2 CoinTelegraph"],
-["10.3 Decrypt","10.4 Binance News"],
+["11.1 CoinDesk","11.2 CoinTelegraph"],
+["11.3 Decrypt","11.4 Binance News"],
 ["⬅ Back"]
 ],
 "resize_keyboard":True
@@ -145,19 +146,17 @@ def send(chat,text,menu=None):
 
 def price(coin):
     try:
+
         r = requests.get(
-            f"https://api.coinpaprika.com/v1/tickers/{coin}",
-            timeout=10
+        f"https://api.coinpaprika.com/v1/tickers/{coin}",
+        timeout=10
         )
 
         if r.status_code != 200:
             return "Unavailable"
 
-        data = r.json()
-
-        price = data["quotes"]["USD"]["price"]
-
-        return round(price,2)
+        data=r.json()
+        return round(data["quotes"]["USD"]["price"],2)
 
     except:
         return "Unavailable"
@@ -178,142 +177,127 @@ def bot():
         chat=data["message"]["chat"]["id"]
         text=data["message"].get("text","")
 
-        if chat not in user_lang:
-            user_lang[chat]="EN"
-
 # ===================== START =====================
 
-        if text=="/start":
+        if text=="1️⃣ Start":
 
             send(chat,
             "Welcome to the Crypto Education Bot.\n\n"
             "This bot teaches cryptocurrency, blockchain, trading strategies, "
             "risk management, market analysis and portfolio management.\n\n"
-            "Each section contains numbered lessons and detailed explanations.\n"
             "Select a topic from the menu below to start learning.",
             main_menu)
 
-# ===================== LANGUAGE =====================
+# ===================== LEARN =====================
 
-        elif text=="🌐 Language":
+        elif text=="2️⃣ Learn":
 
             send(chat,
-            "Choose your preferred language.",
-            language_menu)
+            "2️⃣ Crypto Learning\n\n"
+            "Select a lesson to begin learning about blockchain and crypto.",
+            learn_menu)
 
-        elif text=="English 🇺🇸":
+# ===================== TRADING =====================
 
-            user_lang[chat]="EN"
-            send(chat,"Language changed to English.",main_menu)
+        elif text=="3️⃣ Trading":
 
-        elif text=="Français 🇫🇷":
+            send(chat,
+            "3️⃣ Trading Strategies\n\n"
+            "Learn how traders buy and sell crypto assets.",
+            trading_menu)
 
-            user_lang[chat]="FR"
-            send(chat,"Langue changée en Français.",main_menu)
+# ===================== RISK =====================
 
-        elif text=="Español 🇪🇸":
+        elif text=="4️⃣ Risk":
 
-            user_lang[chat]="ES"
-            send(chat,"Idioma cambiado a Español.",main_menu)
+            send(chat,
+            "4️⃣ Risk Management\n\n"
+            "Risk management protects traders from large losses.",
+            risk_menu)
 
-# ===================== MAIN SECTIONS =====================
+# ===================== MARKET =====================
 
-        elif text=="1️⃣ Learn":
-            send(chat,"1️⃣ Crypto Learning\n\nChoose a lesson.",learn_menu)
+        elif text=="5️⃣ Market":
 
-        elif text=="2️⃣ Trading":
-            send(chat,"2️⃣ Trading Strategies\n\nChoose a lesson.",trading_menu)
-
-        elif text=="3️⃣ Risk":
-            send(chat,"3️⃣ Risk Management\n\nChoose a lesson.",risk_menu)
-
-        elif text=="4️⃣ Market":
-            send(chat,"4️⃣ Market Analysis\n\nChoose a lesson.",market_menu)
-
-        elif text=="6️⃣ Charts":
-            send(chat,"6️⃣ Crypto Charts\n\nSelect a chart.",chart_menu)
-
-        elif text=="7️⃣ Altcoins":
-            send(chat,"7️⃣ Altcoins\n\nChoose a coin.",alt_menu)
-
-        elif text=="8️⃣ Staking":
-            send(chat,"8️⃣ Staking\n\nChoose a lesson.",staking_menu)
-
-        elif text=="9️⃣ Portfolio":
-            send(chat,"9️⃣ Portfolio Management\n\nChoose a lesson.",portfolio_menu)
-
-        elif text=="🔟 News":
-            send(chat,"🔟 Crypto News\n\nSelect a source.",news_menu)
+            send(chat,
+            "5️⃣ Market Analysis\n\n"
+            "Understanding the crypto market helps investors make better decisions.",
+            market_menu)
 
 # ===================== PRICE =====================
 
-        elif text=="5️⃣ Price":
+        elif text=="6️⃣ Price":
 
             send(chat,
-            "5️⃣ Cryptocurrency Prices\n\n"
-            "Select a cryptocurrency to check "
-            "its current market price.",
+            "6️⃣ Cryptocurrency Prices\n\nSelect a cryptocurrency.",
             price_menu)
 
-        elif text=="5.1 BTC":
+        elif text=="6.1 BTC":
             send(chat,f"Bitcoin Price: ${price('btc-bitcoin')}")
 
-        elif text=="5.2 ETH":
+        elif text=="6.2 ETH":
             send(chat,f"Ethereum Price: ${price('eth-ethereum')}")
 
-        elif text=="5.3 BNB":
+        elif text=="6.3 BNB":
             send(chat,f"BNB Price: ${price('bnb-binance-coin')}")
 
-        elif text=="5.4 SOL":
+        elif text=="6.4 SOL":
             send(chat,f"Solana Price: ${price('sol-solana')}")
+
+# ===================== CHARTS =====================
+
+        elif text=="7️⃣ Charts":
+
+            send(chat,
+            "7️⃣ Crypto Charts\n\n"
+            "Charts help traders analyze price movements "
+            "and identify trends in the market.\n\n"
+            "Select a chart to open it on TradingView.",
+            chart_menu)
+
+        elif text=="7.1 BTC Chart":
+            send(chat,"https://www.tradingview.com/chart/?symbol=BINANCE:BTCUSDT")
+
+        elif text=="7.2 ETH Chart":
+            send(chat,"https://www.tradingview.com/chart/?symbol=BINANCE:ETHUSDT")
+
+        elif text=="7.3 BNB Chart":
+            send(chat,"https://www.tradingview.com/chart/?symbol=BINANCE:BNBUSDT")
+
+        elif text=="7.4 SOL Chart":
+            send(chat,"https://www.tradingview.com/chart/?symbol=BINANCE:SOLUSDT")
+
+# ===================== NEWS =====================
+
+        elif text=="1️⃣1️⃣ News":
+
+            send(chat,
+            "1️⃣1️⃣ Crypto News Sources\n\nSelect a news source.",
+            news_menu)
+
+        elif text=="11.1 CoinDesk":
+            send(chat,"https://www.coindesk.com")
+
+        elif text=="11.2 CoinTelegraph":
+            send(chat,"https://cointelegraph.com")
+
+        elif text=="11.3 Decrypt":
+            send(chat,"https://decrypt.co")
+
+        elif text=="11.4 Binance News":
+            send(chat,"https://www.binance.com/en/news")
 
 # ===================== AI =====================
 
-        elif text=="1️⃣1️⃣ AI Assistant":
-
-            ai_mode[chat]=True
+        elif text=="1️⃣2️⃣ AI Assistant":
 
             send(chat,
-            "1️⃣1️⃣ AI Assistant\n\n"
-            "Ask any cryptocurrency question.\n\n"
-            "Press ⬅ Back to exit AI mode.",
-            main_menu)
-
-        elif chat in ai_mode and ai_mode[chat] and text not in [
-        "⬅ Back",
-        "1️⃣ Learn","2️⃣ Trading","3️⃣ Risk","4️⃣ Market",
-        "5️⃣ Price","6️⃣ Charts","7️⃣ Altcoins","8️⃣ Staking",
-        "9️⃣ Portfolio","🔟 News","🌐 Language"]:
-
-            try:
-
-                r=requests.post(
-                "https://api.groq.com/openai/v1/chat/completions",
-                headers={
-                "Authorization":f"Bearer {GROQ_API_KEY}",
-                "Content-Type":"application/json"
-                },
-                json={
-                "model":"llama-3.3-70b-versatile",
-                "messages":[
-                {"role":"system","content":"You are a crypto expert assistant."},
-                {"role":"user","content":text}
-                ]
-                })
-
-                answer=r.json()["choices"][0]["message"]["content"]
-
-                send(chat,answer)
-
-            except:
-
-                send(chat,"AI service unavailable.")
+            "1️⃣2️⃣ AI Assistant\n\nAsk any cryptocurrency question.")
 
 # ===================== BACK =====================
 
         elif text=="⬅ Back":
 
-            ai_mode[chat]=False
             send(chat,"Main Menu",main_menu)
 
     return "ok"
