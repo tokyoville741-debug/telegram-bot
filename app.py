@@ -286,6 +286,15 @@ A common rule among professional traders is the 1–2% rule, which means risking
 By controlling position size, traders ensure that a single losing trade does not significantly damage their overall portfolio.
 """# ================= BOT =================
 
+# ================= HOME ROUTE =================
+
+@app.route("/")
+def home():
+    return "OpenClaw AI Coach Bot is running"
+
+
+# ================= WEBHOOK =================
+
 @app.route(f"/{TOKEN}",methods=["POST"])
 def bot():
 
@@ -296,6 +305,15 @@ def bot():
 
     chat=data["message"]["chat"]["id"]
     text=data["message"].get("text","")
+
+
+    
+
+    
+        
+
+    
+    
 
 
 # ================= START =================
