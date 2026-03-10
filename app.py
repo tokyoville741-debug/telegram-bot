@@ -216,175 +216,6 @@ def bot():
             user_lang[chat]="ES"
             send(chat,"Idioma cambiado a Español.",main_menu)
 
-# ===================== LEARN =====================
-
-        elif text=="1️⃣ Learn":
-
-            send(chat,
-            "1️⃣ Learn - Crypto Fundamentals\n\n"
-            "This section introduces the core concepts of cryptocurrency. "
-            "You will learn how blockchain works, what Bitcoin is, "
-            "how wallets store crypto and how decentralized finance operates.",
-            learn_menu)
-
-        elif text=="1.1 Blockchain":
-
-            send(chat,
-            "1.1 Blockchain\n\n"
-            "Blockchain is a decentralized digital ledger that records "
-            "transactions across many computers in a secure and transparent way.",
-            learn_menu)
-
-        elif text=="1.2 Bitcoin":
-
-            send(chat,
-            "1.2 Bitcoin\n\n"
-            "Bitcoin is the first cryptocurrency created in 2009 by "
-            "Satoshi Nakamoto. It allows peer-to-peer payments without banks.",
-            learn_menu)
-
-        elif text=="1.3 Wallet":
-
-            send(chat,
-            "1.3 Wallet\n\n"
-            "A crypto wallet stores private keys used to access and "
-            "manage cryptocurrency assets securely.",
-            learn_menu)
-
-        elif text=="1.4 DeFi":
-
-            send(chat,
-            "1.4 DeFi\n\n"
-            "Decentralized Finance allows lending, borrowing, trading "
-            "and earning interest without traditional banks.",
-            learn_menu)
-
-# ===================== TRADING =====================
-
-        elif text=="2️⃣ Trading":
-
-            send(chat,
-            "2️⃣ Trading\n\n"
-            "Crypto trading involves buying and selling digital assets "
-            "to profit from market price movements.",
-            trading_menu)
-
-        elif text=="2.1 Spot Trading":
-
-            send(chat,
-            "2.1 Spot Trading\n\n"
-            "Spot trading means buying and selling assets instantly "
-            "at the current market price.",
-            trading_menu)
-
-        elif text=="2.2 Futures":
-
-            send(chat,
-            "2.2 Futures Trading\n\n"
-            "Futures contracts allow traders to speculate on the future "
-            "price of an asset using leverage.",
-            trading_menu)
-
-        elif text=="2.3 Day Trading":
-
-            send(chat,
-            "2.3 Day Trading\n\n"
-            "Day traders open and close positions within the same day "
-            "to capture small market movements.",
-            trading_menu)
-
-        elif text=="2.4 Swing Trading":
-
-            send(chat,
-            "2.4 Swing Trading\n\n"
-            "Swing trading holds positions for several days or weeks "
-            "to capture medium-term price trends.",
-            trading_menu)
-
-# ===================== RISK =====================
-
-        elif text=="3️⃣ Risk":
-
-            send(chat,
-            "3️⃣ Risk Management\n\n"
-            "Risk management helps protect your trading capital "
-            "and control potential losses.",
-            risk_menu)
-
-        elif text=="3.1 Stop Loss":
-
-            send(chat,
-            "3.1 Stop Loss\n\n"
-            "A stop loss automatically closes a trade "
-            "when price reaches a certain level.",
-            risk_menu)
-
-        elif text=="3.2 Position Size":
-
-            send(chat,
-            "3.2 Position Size\n\n"
-            "Position sizing determines how much capital "
-            "you allocate to a single trade.",
-            risk_menu)
-
-        elif text=="3.3 Risk Reward":
-
-            send(chat,
-            "3.3 Risk Reward\n\n"
-            "The risk-reward ratio compares potential profit "
-            "to potential loss.",
-            risk_menu)
-
-        elif text=="3.4 Diversification":
-
-            send(chat,
-            "3.4 Diversification\n\n"
-            "Diversifying investments across different assets "
-            "helps reduce overall portfolio risk.",
-            risk_menu)
-
-# ===================== MARKET =====================
-
-        elif text=="4️⃣ Market":
-
-            send(chat,
-            "4️⃣ Crypto Market\n\n"
-            "The crypto market consists of thousands of "
-            "digital assets traded worldwide.",
-            market_menu)
-
-        elif text=="4.1 Bull Market":
-
-            send(chat,
-            "4.1 Bull Market\n\n"
-            "A bull market occurs when prices rise "
-            "and investor confidence increases.",
-            market_menu)
-
-        elif text=="4.2 Bear Market":
-
-            send(chat,
-            "4.2 Bear Market\n\n"
-            "A bear market occurs when prices decline "
-            "for a prolonged period.",
-            market_menu)
-
-        elif text=="4.3 Market Cap":
-
-            send(chat,
-            "4.3 Market Capitalization\n\n"
-            "Market cap represents the total value "
-            "of a cryptocurrency.",
-            market_menu)
-
-        elif text=="4.4 Liquidity":
-
-            send(chat,
-            "4.4 Liquidity\n\n"
-            "Liquidity indicates how easily an asset "
-            "can be bought or sold without affecting price.",
-            market_menu)
-
 # ===================== PRICE =====================
 
         elif text=="5️⃣ Price":
@@ -419,9 +250,14 @@ def bot():
 
             send(chat,
             "1️⃣1️⃣ AI Assistant\n\n"
-            "Ask any cryptocurrency question.")
+            "Ask any cryptocurrency question.\n\n"
+            "Press ⬅ Back to exit AI mode.")
 
-        elif chat in ai_mode and ai_mode[chat]:
+        elif chat in ai_mode and ai_mode[chat] and text not in [
+        "⬅ Back",
+        "1️⃣ Learn","2️⃣ Trading","3️⃣ Risk","4️⃣ Market",
+        "5️⃣ Price","6️⃣ Charts","7️⃣ Altcoins","8️⃣ Staking",
+        "9️⃣ Portfolio","🔟 News","🌐 Language"]:
 
             try:
 
