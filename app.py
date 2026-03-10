@@ -151,8 +151,7 @@ def get_price(symbol):
 
     except:
 
-        return "Unavailable"
-        # ================= EDUCATIONAL TEXTS =================
+        return "Unavailable"# ================= EDUCATIONAL TEXTS =================
 
 
 BLOCKCHAIN_TEXT = """
@@ -330,6 +329,24 @@ def bot():
         send(chat,"Main Menu",main_menu)
 
 
+# ================= LANGUAGE =================
+
+    elif text=="Language":
+
+        send(chat,
+        "🌍 Select your language / Choisissez votre langue / Seleccione su idioma",
+        language_menu)
+
+    elif text=="English":
+        send(chat,"Language set to English.")
+
+    elif text=="Français":
+        send(chat,"Langue définie sur Français.")
+
+    elif text=="Español":
+        send(chat,"Idioma configurado en Español.")
+
+
 # ================= LEARN =================
 
     elif text=="1 Learn":
@@ -489,20 +506,16 @@ def bot():
         portfolio_menu)
 
     elif text=="9.1 Diversification":
-        send(chat,
-        "Diversification means spreading investments across multiple cryptocurrencies to reduce overall risk.")
+        send(chat,"Diversification means spreading investments across multiple cryptocurrencies to reduce overall risk.")
 
     elif text=="9.2 Long Term Investing":
-        send(chat,
-        "Long term investing focuses on holding assets for months or years rather than trading frequently.")
+        send(chat,"Long term investing focuses on holding assets for months or years rather than trading frequently.")
 
     elif text=="9.3 Portfolio Tracking":
-        send(chat,
-        "Portfolio tracking helps investors monitor performance and manage asset allocation.")
+        send(chat,"Portfolio tracking helps investors monitor performance and manage asset allocation.")
 
     elif text=="9.4 Rebalancing":
-        send(chat,
-        "Rebalancing is the process of adjusting portfolio allocations to maintain a desired risk level.")
+        send(chat,"Rebalancing is the process of adjusting portfolio allocations to maintain a desired risk level.")
 
 
 # ================= NEWS =================
@@ -530,8 +543,8 @@ def bot():
         ai_mode[chat]=True
 
         send(chat,
-        "AI Assistant activated.\n\n"
-        "Ask any question about cryptocurrency.")
+        "🤖 AI Assistant Activated\n\n"
+        "Ask any question about cryptocurrency, trading or blockchain.")
 
 
     elif ai_mode.get(chat):
@@ -551,54 +564,11 @@ def bot():
 
             reply=r.json()["choices"][0]["message"]["content"]
 
-            send(chat,reply)
+            send(chat,reply[:4000])
 
         except:
 
-            send(chat,"AI unavailable.")
+            send(chat,"⚠ AI unavailable.")
 
 
     return "ok"
-
-
-
-# ================= WEBHOOK =================
-
-@app.before_request
-def setup_webhook():
-
-    global webhook_set
-
-    if not webhook_set:
-
-        url=os.environ.get("RENDER_EXTERNAL_URL")+f"/{TOKEN}"
-
-        requests.get(URL+"/setWebhook",params={"url":url})
-
-        webhook_set=True
-
-
-# ================= KEEP BOT AWAKE =================
-
-def keep_alive():
-
-    while True:
-
-        try:
-            requests.get(os.environ.get("RENDER_EXTERNAL_URL"))
-        except:
-            pass
-
-        time.sleep(300)
-
-threading.Thread(target=keep_alive).start()
-
-
-
-# ================= RUN =================
-
-if __name__=="__main__":
-
-    port=int(os.environ.get("PORT",10000))
-
-    app.run(host="0.0.0.0",port=port)
