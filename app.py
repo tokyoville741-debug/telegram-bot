@@ -509,7 +509,7 @@ main_menu)
 
 # CHARTS
 
-    elif text == "6.1 BTC Chart":
+    if text == "6.1 BTC Chart":
         send(chat,"https://www.tradingview.com/chart/?symbol=BINANCE:BTCUSDT")
 
     elif text == "6.2 ETH Chart":
@@ -522,8 +522,9 @@ main_menu)
         send(chat,"https://www.tradingview.com/chart/?symbol=BINANCE:SOLUSDT")
 
 # NEWS (CORRIGÉ)
-
-    elif text == "10.1 CoinDesk":
+    
+    
+    if text == "10.1 CoinDesk":
         send(chat,"https://www.coindesk.com")
 
     elif text == "10.2 CoinTelegraph":
