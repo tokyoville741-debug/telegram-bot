@@ -406,7 +406,6 @@ def webhook():
 # ================= START =================
 
     if text == "/start":
-
     msg = """🚀 Welcome to OpenClaw AI Coach
 
 Your intelligent assistant for learning and exploring cryptocurrency, trading and blockchain technology.
@@ -424,7 +423,6 @@ With this bot you can:
 
 👇 Select a topic from the menu below.
 """
-
     send(chat, msg, main_menu())
     return "ok"
 
