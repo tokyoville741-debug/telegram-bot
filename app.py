@@ -39,7 +39,6 @@ main_menu = [
 ["11 AI Assistant"],
 ["Language"]
 ]
-
 # ================= SUB MENUS =================
 
 learn_menu = [
@@ -118,7 +117,6 @@ language_menu = [
 ["English","Français","Español"],
 ["⬅ Back"]
 ]
-
 # ================= PRICE =================
 
 def get_price(symbol):
@@ -128,8 +126,7 @@ def get_price(symbol):
         return r.json()["price"]
     except:
         return "Unavailable"
-
-# ================= LONG EDUCATION TEXT =================
+        # ================= LONG EDUCATION TEXT =================
 
 BLOCKCHAIN = """
 ⛓ WHAT IS BLOCKCHAIN?
@@ -174,7 +171,6 @@ This innovation made it possible to build decentralized finance systems, NFT mar
 
 Today Ethereum is one of the largest blockchain ecosystems in the world.
 """
-
 SPOT = """
 📊 SPOT TRADING
 
@@ -230,72 +226,61 @@ Risk management techniques include position sizing, diversification and the use 
 
 Without proper risk management even skilled traders can lose large amounts of money.
 """
-
 STOP = """
 🛑 STOP LOSS
 
-A stop loss is an automatic order that closes a trade when the price reaches a specific level.
+A stop loss is a tool traders use to automatically close a trade when the price reaches a certain level.
 
-It is designed to limit potential losses.
+Its main purpose is to limit losses and protect trading capital.
 
-For example if you buy Bitcoin at $60,000 you may place a stop loss at $58,000.
+For example if you buy Bitcoin at $40,000 you might place a stop loss at $38,000. If the market drops to that level the trade automatically closes.
 
-If the market drops to that level your position automatically closes.
-
-Stop losses help remove emotions from trading decisions and protect your capital.
+Using stop losses is one of the most important habits of disciplined traders.
 """
 
 SIZE = """
 📏 POSITION SIZE
 
-Position sizing determines how much capital you allocate to each trade.
+Position size refers to how much money you allocate to a single trade.
 
-Instead of risking your entire portfolio on one trade, experienced traders divide their capital across multiple trades.
+Professional traders calculate position size carefully to control risk.
 
-Many traders follow the 1% or 2% rule meaning they risk only 1–2% of their total capital per trade.
+For example if a trader has $1,000 and only wants to risk 2% per trade, they should not lose more than $20 if the trade fails.
 
-Proper position sizing prevents a single losing trade from destroying your portfolio.
+Proper position sizing helps traders survive losing streaks and stay in the market long term.
 """
 
 BULL = """
-📈 BULL MARKET
+🐂 BULL MARKET
 
-A bull market is a period where asset prices rise consistently over time.
+A bull market describes a period when prices are generally rising and investor confidence is strong.
 
-During bull markets investor confidence is high and demand for assets increases.
+During a bull market demand for assets increases and prices tend to trend upward over time.
 
-Bull markets are often driven by strong economic conditions, technological innovation and positive investor sentiment.
-
-Cryptocurrency bull markets have historically produced large price increases across many digital assets.
+Bull markets often attract new investors because of the positive momentum and media attention.
 """
 
 BEAR = """
-📉 BEAR MARKET
+🐻 BEAR MARKET
 
-A bear market is a prolonged period where asset prices decline and investor sentiment becomes pessimistic.
+A bear market is the opposite of a bull market.
 
-During bear markets traders often experience fear and uncertainty.
+It occurs when prices decline for an extended period and market sentiment becomes negative.
 
-Prices may fall significantly before the market eventually stabilizes and begins a new cycle.
+During bear markets investors may become fearful and many assets lose significant value.
 
-Bear markets are a natural part of financial markets and often follow major bull runs.
+However bear markets can also create opportunities for long-term investors.
 """
 
 CYCLE = """
 🔄 MARKET CYCLE
 
-Financial markets move in cycles rather than straight lines.
+Financial markets often move in cycles.
 
-A typical market cycle has four phases:
+A typical cycle includes accumulation, uptrend (bull market), distribution and downtrend (bear market).
 
-1. Accumulation – smart investors slowly buy assets
-2. Uptrend (Markup) – prices rise rapidly
-3. Distribution – early investors begin selling
-4. Downtrend (Markdown) – prices decline
-
-Understanding market cycles helps traders identify opportunities and manage risk.
+Understanding market cycles helps investors recognize when markets may be overheated or undervalued.
 """
-
 ALT = """
 🪙 ALTCOINS
 
@@ -363,137 +348,137 @@ Instead of miners solving complex puzzles, validators are selected based on the 
 
 This system reduces energy consumption and improves scalability compared to traditional mining.
 """
-
 DIV = """
 📊 DIVERSIFICATION
 
-Diversification is the practice of spreading investments across multiple assets.
+Diversification is the strategy of spreading investments across different assets.
 
-Instead of putting all capital into a single cryptocurrency, investors distribute funds across several assets.
+Instead of putting all capital into a single cryptocurrency, investors distribute funds across multiple assets.
 
-This strategy reduces risk because poor performance from one asset can be balanced by gains in another.
+This reduces overall risk because poor performance of one asset may be offset by stronger performance of others.
+
+Diversification is widely used by professional investors to build more stable portfolios.
 """
 
 LONG = """
-📈 LONG TERM INVESTING
+⏳ LONG TERM INVESTING
 
-Long term investing focuses on holding assets for years rather than trading frequently.
+Long term investing involves holding assets for extended periods of time.
 
-Investors believe the value of strong projects will increase over time.
+Instead of trying to predict short-term market movements, investors focus on the long-term growth potential of an asset.
 
-This strategy avoids emotional trading and reduces transaction costs.
+This strategy is common in cryptocurrency where markets can be volatile in the short term but grow significantly over longer periods.
 """
 
 TRACK = """
-📊 PORTFOLIO TRACKING
+📈 PORTFOLIO TRACKING
 
-Portfolio tracking helps investors monitor the performance of their investments.
+Portfolio tracking involves monitoring the value and performance of your cryptocurrency investments.
 
-By tracking asset values, profits and losses investors can better understand how their portfolio evolves over time.
+Investors track portfolio value, profit and loss, and asset allocation.
 
-Many investors use tracking tools to manage risk and evaluate investment strategies.
+Many applications allow users to automatically track their crypto portfolios across multiple exchanges and wallets.
 """
 
 REBAL = """
-⚖ REBALANCING
+⚖ PORTFOLIO REBALANCING
 
-Rebalancing means adjusting the proportions of assets in your portfolio.
+Portfolio rebalancing is the process of adjusting the allocation of assets in a portfolio.
 
-If one asset grows significantly it may represent too large a percentage of your portfolio.
+Over time some assets grow faster than others which can change the risk level of the portfolio.
 
-Rebalancing involves selling part of the outperforming asset and buying others to maintain a balanced allocation.
-
-This strategy helps control risk and maintain a consistent investment strategy.
+Rebalancing restores the desired allocation by selling some assets and buying others.
 """
-# ================= BOT =================
+# ================= WEBHOOK =================
 
-@app.route(f"/{TOKEN}", methods=["POST"])
-def bot():
+@app.route("/", methods=["POST"])
+def webhook():
 
     data = request.get_json()
 
-    if not data or "message" not in data:
+    if "message" not in data:
         return "ok"
 
     chat = data["message"]["chat"]["id"]
+
     text = data["message"].get("text","")
 
-# START
+# ================= START =================
 
     if text == "/start":
 
-        ai_mode[chat] = False
+        send(
+            chat,
+            "Welcome to the Crypto Learning Bot",
+            main_menu
+        )
 
-        send(chat,
-
-"🚀 Welcome to OpenClaw AI Coach\n\n"
-"Your intelligent assistant for learning and exploring cryptocurrency, trading and blockchain technology.\n\n"
-"With this bot you can:\n"
-"📚 Learn crypto fundamentals\n"
-"📊 Understand trading strategies\n"
-"📉 Discover risk management techniques\n"
-"📈 Explore crypto charts\n"
-"🪙 Learn about altcoins\n"
-"💰 Understand staking and passive income\n"
-"📰 Follow crypto news\n"
-"🤖 Ask the AI Assistant any question\n\n"
-"👇 Select a topic from the menu below.",
-main_menu)
-
-# BACK
-
-    elif text == "⬅ Back":
-
-        ai_mode[chat] = False
-        send(chat,"Main Menu",main_menu)
-
-# MENUS
+# ================= LEARN MENU =================
 
     elif text == "1 Learn":
-        send(chat,"Learning Section",learn_menu)
+
+        keyboard = [
+        ["1.1 Blockchain","1.2 Bitcoin"],
+        ["1.3 Ethereum"]
+        ]
+
+        send(chat,"Choose a topic",keyboard)
+
+    elif text == "1.1 Blockchain":
+        send(chat,BLOCKCHAIN)
+
+    elif text == "1.2 Bitcoin":
+        send(chat,BITCOIN)
+
+    elif text == "1.3 Ethereum":
+        send(chat,ETHEREUM)
+        # ================= TRADING =================
 
     elif text == "2 Trading":
         send(chat,"Trading Section",trading_menu)
 
+    elif text == "2.1 Spot Trading":
+        send(chat, SPOT)
+
+    elif text == "2.2 Futures Trading":
+        send(chat, FUTURES)
+
+    elif text == "2.3 Technical Analysis":
+        send(chat, TECHNICAL)
+
+
+# ================= RISK =================
+
     elif text == "3 Risk":
         send(chat,"Risk Section",risk_menu)
+
+    elif text == "3.1 Risk Management":
+        send(chat, RISK)
+
+    elif text == "3.2 Stop Loss":
+        send(chat, STOP)
+
+    elif text == "3.3 Position Size":
+        send(chat, SIZE)
+
+
+# ================= MARKET =================
 
     elif text == "4 Market":
         send(chat,"Market Section",market_menu)
 
+    elif text == "4.1 Bull Market":
+        send(chat, BULL)
+
+    elif text == "4.2 Bear Market":
+        send(chat, BEAR)
+
+    elif text == "4.3 Market Cycle":
+        send(chat, CYCLE)
+        # ================= PRICE =================
+
     elif text == "5 Price":
         send(chat,"Crypto Prices",price_menu)
-
-    elif text == "6 Charts":
-        send(chat,"Charts Section",charts_menu)
-
-    elif text == "7 Altcoins":
-        send(chat,"Altcoins Section",altcoins_menu)
-
-    elif text == "8 Staking":
-        send(chat,"Staking Section",staking_menu)
-
-    elif text == "9 Portfolio":
-        send(chat,"Portfolio Section",portfolio_menu)
-
-    elif text == "10 News":
-        send(chat,"News Sources",news_menu)
-
-    elif text == "Language":
-        send(chat,"Select language",language_menu)
-
-# EDUCATION
-
-    elif text == "1.1 What is Blockchain":
-        send(chat,BLOCKCHAIN)
-
-    elif text == "1.2 What is Bitcoin":
-        send(chat,BITCOIN)
-
-    elif text == "1.3 What is Ethereum":
-        send(chat,ETHEREUM)
-
-# PRICES
 
     elif text == "5.1 BTC Price":
         send(chat,f"BTC Price: ${get_price('BTCUSDT')}")
@@ -507,7 +492,11 @@ main_menu)
     elif text == "5.4 SOL Price":
         send(chat,f"SOL Price: ${get_price('SOLUSDT')}")
 
-# CHARTS
+
+# ================= CHARTS =================
+
+    elif text == "6 Charts":
+        send(chat,"Charts Section",charts_menu)
 
     elif text == "6.1 BTC Chart":
         send(chat,"https://www.tradingview.com/chart/?symbol=BINANCE:BTCUSDT")
@@ -521,9 +510,58 @@ main_menu)
     elif text == "6.4 SOL Chart":
         send(chat,"https://www.tradingview.com/chart/?symbol=BINANCE:SOLUSDT")
 
-# NEWS (CORRIGÉ)
-    
-    
+
+# ================= ALTCOINS =================
+
+    elif text == "7 Altcoins":
+        send(chat,"Altcoins Section",altcoins_menu)
+
+    elif text == "7.1 What are Altcoins":
+        send(chat, ALT)
+
+    elif text == "7.2 Popular Altcoins":
+        send(chat, ALT_POP)
+
+    elif text == "7.3 Altcoin Season":
+        send(chat, ALT_SEASON)
+
+
+# ================= STAKING =================
+
+    elif text == "8 Staking":
+        send(chat,"Staking Section",staking_menu)
+
+    elif text == "8.1 What is Staking":
+        send(chat, STAKE)
+
+    elif text == "8.2 Staking Rewards":
+        send(chat, STAKE_REWARD)
+
+    elif text == "8.3 Proof of Stake":
+        send(chat, POS)
+
+
+# ================= PORTFOLIO =================
+
+    elif text == "9 Portfolio":
+        send(chat,"Portfolio Section",portfolio_menu)
+
+    elif text == "9.1 Diversification":
+        send(chat, DIV)
+
+    elif text == "9.2 Long Term Investing":
+        send(chat, LONG)
+
+    elif text == "9.3 Portfolio Tracking":
+        send(chat, TRACK)
+
+    elif text == "9.4 Rebalancing":
+        send(chat, REBAL)
+        # ================= NEWS =================
+
+    elif text == "10 News":
+        send(chat,"News Sources",news_menu)
+
     elif text == "10.1 CoinDesk":
         send(chat,"https://www.coindesk.com")
 
@@ -535,158 +573,82 @@ main_menu)
 
     elif text == "10.4 Binance News":
         send(chat,"https://www.binance.com/en/news")
-# TRADING
-
-elif text == "2 Trading":
-    send(chat,"Trading Section")
-
-elif text == "2.1 Spot Trading":
-    send(chat,"Spot trading means buying and selling crypto instantly at the current market price.")
-
-elif text == "2.2 Futures Trading":
-    send(chat,"Futures trading allows traders to speculate on price movements using leverage.")
-
-elif text == "2.3 Technical Analysis":
-    send(chat,"Technical analysis studies charts, indicators and patterns to predict price movements.")
 
 
-# MARKET
+# ================= LANGUAGE =================
 
-elif text == "4 Market":
-    send(chat,"Market Section")
+    elif text == "Language":
+        send(chat,"Select language",language_menu)
 
-elif text == "4.1 Bull Market":
-    send(chat,"A bull market is when cryptocurrency prices rise for a long period.")
+    elif text == "Français":
+        send(chat,"Langue sélectionnée : Français")
 
-elif text == "4.2 Bear Market":
-    send(chat,"A bear market is when cryptocurrency prices fall for a long period.")
+    elif text == "English":
+        send(chat,"Language selected: English")
 
-elif text == "4.3 Market Cycle":
-    send(chat,"A market cycle includes accumulation, uptrend, distribution and downtrend.")
-
-
-# RISK
-
-elif text == "3 Risk":
-    send(chat,"Risk Management Section")
-
-elif text == "3.1 Risk Management":
-    send(chat,"Risk management protects your trading capital.")
-
-elif text == "3.2 Stop Loss":
-    send(chat,"A stop loss automatically closes a trade to limit losses.")
-
-elif text == "3.3 Position Size":
-    send(chat,"Position sizing controls how much capital you risk per trade.")
+    elif text == "Español":
+        send(chat,"Idioma seleccionado: Español")
 
 
-# ALTCOINS
+# ================= AI ASSISTANT =================
 
+    elif text == "11 AI Assistant":
 
-elif text == "7 Altcoins":
-    send(chat,"Altcoins Section")
+        ai_mode[chat] = True
+        memory[chat] = []
 
-elif text == "7.1 What are Altcoins":
-    send(chat, ALT)
+        send(chat,
+        "🤖 AI Assistant Activated\n\n"
+        "Ask any question about crypto.")
 
-elif text == "7.2 Popular Altcoins":
-    send(chat, ALT_POP)
+    elif ai_mode.get(chat):
 
-elif text == "7.3 Altcoin Season":
-    send(chat, ALT_SEASON)
+        try:
 
-# STAKING
+            history = memory.get(chat, [])
 
-elif text == "8 Staking":
-    send(chat,"Staking Section")
+            history.append({"role":"user","content":text})
 
-elif text == "8.1 What is Staking":
-    send(chat,"Staking means locking crypto to support a blockchain network and earn rewards.")
+            messages = [
+                {"role":"system",
+                 "content":"You are a professional crypto assistant."}
+            ] + history[-6:]
 
-elif text == "8.2 Staking Rewards":
-    send(chat,"Staking rewards are earnings received for helping secure the network.")
+            r = requests.post(
+            "https://api.groq.com/openai/v1/chat/completions",
+            headers={
+            "Authorization":f"Bearer {GROQ_API_KEY}",
+            "Content-Type":"application/json"
+            },
+            json={
+            "model":"llama3-8b-8192",
+            "messages":messages
+            },
+            timeout=20
+            )
 
+            data = r.json()
 
-# PORTFOLIO
+            reply = data["choices"][0]["message"]["content"]
 
-elif text == "9 Portfolio":
-    send(chat,"Portfolio Section")
+            memory[chat].append({
+            "role":"assistant",
+            "content":reply
+            })
 
-elif text == "9.1 Diversification":
-    send(chat,"Diversification means investing in multiple assets to reduce risk.")
+            send(chat,reply[:4000])
 
-elif text == "9.2 Long Term Investing":
-    send(chat,"Long-term investing means holding crypto for months or years.")
+        except Exception as e:
 
+            send(chat,"⚠ AI unavailable.")
 
-# LANGUAGE
+        return "ok"
 
-elif text == "Language":
-    send(chat,"Select language")
-
-elif text == "Français":
-    send(chat,"Langue sélectionnée : Français")
-
-elif text == "English":
-    send(chat,"Language selected: English")
-
-elif text == "Español":
-    send(chat,"Idioma seleccionado: Español")
-
-# AI
-
-
-elif text == "11 AI Assistant":
-
-    ai_mode[chat] = True
-    memory[chat] = []
-
-    send(chat,
-    "🤖 AI Assistant Activated\n\n"
-    "Ask any question about crypto.")
-
-elif ai_mode.get(chat):
-
-    try:
-
-        history = memory.get(chat, [])
-
-        history.append({"role":"user","content":text})
-
-        messages = [
-            {"role":"system",
-             "content":"You are a professional crypto assistant."}
-        ] + history[-6:]
-
-        r = requests.post(
-        "https://api.groq.com/openai/v1/chat/completions",
-        headers={
-        "Authorization":f"Bearer {GROQ_API_KEY}",
-        "Content-Type":"application/json"
-        },
-        json={
-        "model":"llama3-8b-8192",
-        "messages":messages
-        },
-        timeout=20
-        )
-
-        data = r.json()
-
-        reply = data["choices"][0]["message"]["content"]
-
-        memory[chat].append({
-        "role":"assistant",
-        "content":reply
-        })
-
-        send(chat,reply[:4000])
-
-    except Exception as e:
-
-        send(chat,"⚠ AI unavailable.")
 
     return "ok"
+
+
+# ================= START SERVER =================
 
 if __name__ == "__main__":
 
