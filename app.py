@@ -10,7 +10,7 @@ URL = f"https://api.telegram.org/bot{TOKEN}"
 app = Flask(__name__)
 
 ai_mode = {}
-
+memory = {}
 # ================= SEND MESSAGE =================
 
 def send(chat, text, keyboard=None):
@@ -534,11 +534,106 @@ main_menu)
 
     elif text == "10.4 Binance News":
         send(chat,"https://www.binance.com/en/news")
+# TRADING
+
+elif text == "2 Trading":
+    send(chat,"Trading Section")
+
+elif text == "2.1 Spot Trading":
+    send(chat,"Spot trading means buying and selling crypto instantly at the current market price.")
+
+elif text == "2.2 Futures Trading":
+    send(chat,"Futures trading allows traders to speculate on price movements using leverage.")
+
+elif text == "2.3 Technical Analysis":
+    send(chat,"Technical analysis studies charts, indicators and patterns to predict price movements.")
+
+
+# MARKET
+
+elif text == "4 Market":
+    send(chat,"Market Section")
+
+elif text == "4.1 Bull Market":
+    send(chat,"A bull market is when cryptocurrency prices rise for a long period.")
+
+elif text == "4.2 Bear Market":
+    send(chat,"A bear market is when cryptocurrency prices fall for a long period.")
+
+elif text == "4.3 Market Cycle":
+    send(chat,"A market cycle includes accumulation, uptrend, distribution and downtrend.")
+
+
+# RISK
+
+elif text == "3 Risk":
+    send(chat,"Risk Management Section")
+
+elif text == "3.1 Risk Management":
+    send(chat,"Risk management protects your trading capital.")
+
+elif text == "3.2 Stop Loss":
+    send(chat,"A stop loss automatically closes a trade to limit losses.")
+
+elif text == "3.3 Position Size":
+    send(chat,"Position sizing controls how much capital you risk per trade.")
+
+
+# ALTCOINS
+
+elif text == "7 Altcoins":
+    send(chat,"Altcoins Section")
+
+elif text == "7.1 What are Altcoins":
+    send(chat,"Altcoins are cryptocurrencies other than Bitcoin.")
+
+elif text == "7.2 Altcoin Market":
+    send(chat,"The altcoin market includes thousands of alternative cryptocurrencies.")
+
+elif text == "7.3 Altcoin Risk":
+    send(chat,"Altcoins can be more volatile and risky than Bitcoin.")
+
+
+# STAKING
+
+elif text == "8 Staking":
+    send(chat,"Staking Section")
+
+elif text == "8.1 What is Staking":
+    send(chat,"Staking means locking crypto to support a blockchain network and earn rewards.")
+
+elif text == "8.2 Staking Rewards":
+    send(chat,"Staking rewards are earnings received for helping secure the network.")
+
+
+# PORTFOLIO
+
+elif text == "9 Portfolio":
+    send(chat,"Portfolio Section")
+
+elif text == "9.1 Diversification":
+    send(chat,"Diversification means investing in multiple assets to reduce risk.")
+
+elif text == "9.2 Long Term Investing":
+    send(chat,"Long-term investing means holding crypto for months or years.")
+
+
+# LANGUAGE
+
+elif text == "Language":
+    send(chat,"Select language")
+
+elif text == "Français":
+    send(chat,"Langue sélectionnée : Français")
+
+elif text == "English":
+    send(chat,"Language selected: English")
+
+elif text == "Español":
+    send(chat,"Idioma seleccionado: Español")
 
 # AI
 
-    elif text == "11 AI Assistant":
-memory = {}
 
 elif text == "11 AI Assistant":
 
