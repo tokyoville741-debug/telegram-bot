@@ -537,7 +537,7 @@ main_menu)
         send(chat,"https://www.binance.com/en/news")
 # TRADING
 
-if text == "2 Trading":
+elif text == "2 Trading":
     send(chat,"Trading Section")
 
 elif text == "2.1 Spot Trading":
@@ -582,18 +582,18 @@ elif text == "3.3 Position Size":
 
 # ALTCOINS
 
+
 elif text == "7 Altcoins":
     send(chat,"Altcoins Section")
 
 elif text == "7.1 What are Altcoins":
-    send(chat,"Altcoins are cryptocurrencies other than Bitcoin.")
+    send(chat, ALT)
 
-elif text == "7.2 Altcoin Market":
-    send(chat,"The altcoin market includes thousands of alternative cryptocurrencies.")
+elif text == "7.2 Popular Altcoins":
+    send(chat, ALT_POP)
 
-elif text == "7.3 Altcoin Risk":
-    send(chat,"Altcoins can be more volatile and risky than Bitcoin.")
-
+elif text == "7.3 Altcoin Season":
+    send(chat, ALT_SEASON)
 
 # STAKING
 
