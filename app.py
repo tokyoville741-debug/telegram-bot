@@ -538,34 +538,57 @@ main_menu)
 # AI
 
     elif text == "11 AI Assistant":
+memory = {}
 
-        ai_mode[chat] = True
-        send(chat,"🤖 AI Assistant Activated\nAsk any question about crypto.")
+elif text == "11 AI Assistant":
 
-    elif ai_mode.get(chat):
+    ai_mode[chat] = True
+    memory[chat] = []
 
-        try:
+    send(chat,
+    "🤖 AI Assistant Activated\n\n"
+    "Ask any question about crypto.")
 
-            r = requests.post(
-    "https://api.groq.com/openai/v1/chat/completions",
-    headers={
-        "Authorization": f"Bearer {GROQ_API_KEY}",
-        "Content-Type": "application/json"
-    },
-    json={
-        "model": "llama3-8b-8192",
-        "messages":[{"role":"user","content":text}]
-    },
-    timeout=20
-            )
+elif ai_mode.get(chat):
 
-            reply = r.json()["choices"][0]["message"]["content"]
+    try:
 
-            send(chat,reply[:4000])
+        history = memory.get(chat, [])
 
-        except:
+        history.append({"role":"user","content":text})
 
-            send(chat,"⚠ AI unavailable.")
+        messages = [
+            {"role":"system",
+             "content":"You are a professional crypto assistant."}
+        ] + history[-6:]
+
+        r = requests.post(
+        "https://api.groq.com/openai/v1/chat/completions",
+        headers={
+        "Authorization":f"Bearer {GROQ_API_KEY}",
+        "Content-Type":"application/json"
+        },
+        json={
+        "model":"llama3-8b-8192",
+        "messages":messages
+        },
+        timeout=20
+        )
+
+        data = r.json()
+
+        reply = data["choices"][0]["message"]["content"]
+
+        memory[chat].append({
+        "role":"assistant",
+        "content":reply
+        })
+
+        send(chat,reply[:4000])
+
+    except Exception as e:
+
+        send(chat,"⚠ AI unavailable.")
 
     return "ok"
 
