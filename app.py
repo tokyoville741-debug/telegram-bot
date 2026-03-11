@@ -8,7 +8,9 @@ GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
 URL = f"https://api.telegram.org/bot{TOKEN}"
 
 app = Flask(__name__)
-
+@app.route("/", methods=["GET"])
+def home():
+    return "Bot is running"
 ai_mode = {}
 memory = {}
 # ================= SEND MESSAGE =================
