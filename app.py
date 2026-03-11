@@ -407,31 +407,59 @@ def webhook():
 
     if text == "/start":
 
-        send(
-            chat,
-            "Welcome to the Crypto Learning Bot",
-            main_menu
-        )
+    msg = """🚀 Welcome to OpenClaw AI Coach
+
+Your intelligent assistant for learning and exploring cryptocurrency, trading and blockchain technology.
+
+With this bot you can:
+
+📚 Learn crypto fundamentals
+📊 Understand trading strategies
+📉 Discover risk management techniques
+📈 Explore crypto charts
+🌐 Learn about altcoins
+💰 Understand staking and passive income
+📰 Follow crypto news
+🤖 Ask the AI Assistant any question
+
+👇 Select a topic from the menu below.
+"""
+
+    send(chat, msg, main_menu())
+    return "ok"
 
 # ================= LEARN MENU =================
 
     elif text == "1 Learn":
 
-        keyboard = [
-        ["1.1 Blockchain","1.2 Bitcoin"],
-        ["1.3 Ethereum"]
-        ]
+    keyboard = [
+        ["1.1 Blockchain", "1.2 Bitcoin"],
+        ["1.3 Ethereum"],
+        ["⬅ Back"]
+    ]
 
-        send(chat,"Choose a topic",keyboard)
+    send(chat, "Choose a topic", keyboard)
+    return "ok"
 
-    elif text == "1.1 Blockchain":
-        send(chat,BLOCKCHAIN)
 
-    elif text == "1.2 Bitcoin":
-        send(chat,BITCOIN)
+elif text == "1.1 Blockchain":
+    send(chat, BLOCKCHAIN)
+    return "ok"
 
-    elif text == "1.3 Ethereum":
-        send(chat,ETHEREUM)
+
+elif text == "1.2 Bitcoin":
+    send(chat, BITCOIN)
+    return "ok"
+
+
+elif text == "1.3 Ethereum":
+    send(chat, ETHEREUM)
+    return "ok"
+
+
+elif text == "⬅ Back":
+    send(chat, "Main Menu", main_menu())
+    return "ok"
         # ================= TRADING =================
 
     elif text == "2 Trading":
@@ -561,33 +589,61 @@ def webhook():
 
     elif text == "10 News":
         send(chat,"News Sources",news_menu)
+send(chat, DIV)
+        return "ok"
+
+    elif text == "9.2 Long Term Investing":
+        send(chat, LONG)
+        return "ok"
+
+    elif text == "9.3 Portfolio Tracking":
+        send(chat, TRACK)
+        return "ok"
+
+    elif text == "9.4 Rebalancing":
+        send(chat, REBAL)
+        return "ok"
+
+        # ================= NEWS =================
+
+    elif text == "10 News":
+        send(chat,"News Sources",news_menu)
+        return "ok"
 
     elif text == "10.1 CoinDesk":
         send(chat,"https://www.coindesk.com")
+        return "ok"
 
     elif text == "10.2 CoinTelegraph":
         send(chat,"https://cointelegraph.com")
+        return "ok"
 
     elif text == "10.3 Decrypt":
         send(chat,"https://decrypt.co")
+        return "ok"
 
     elif text == "10.4 Binance News":
         send(chat,"https://www.binance.com/en/news")
+        return "ok"
 
 
 # ================= LANGUAGE =================
 
     elif text == "Language":
         send(chat,"Select language",language_menu)
+        return "ok"
 
     elif text == "Français":
         send(chat,"Langue sélectionnée : Français")
+        return "ok"
 
     elif text == "English":
         send(chat,"Language selected: English")
+        return "ok"
 
     elif text == "Español":
         send(chat,"Idioma seleccionado: Español")
+        return "ok"
 
 
 # ================= AI ASSISTANT =================
