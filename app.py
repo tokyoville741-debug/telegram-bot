@@ -537,7 +537,7 @@ main_menu)
         send(chat,"https://www.binance.com/en/news")
 # TRADING
 
-elif text == "2 Trading":
+if text == "2 Trading":
     send(chat,"Trading Section")
 
 elif text == "2.1 Spot Trading":
