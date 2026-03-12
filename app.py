@@ -617,8 +617,9 @@ With this bot you can:
     elif ai_mode.get(chat):
 
         try:
+            send(chat, "🤖 OpenClaw AI is thinking...")
 
-            r = requests.post(
+            r = session.post(
                 "https://api.groq.com/openai/v1/chat/completions",
                 headers={
                     "Authorization": f"Bearer {GROQ_API_KEY}",
@@ -630,8 +631,10 @@ With this bot you can:
                         {"role":"system","content":"You are a crypto expert assistant."},
                         {"role":"user","content":text}
                     ]
-                }
+                },
+                timeout=10
             )
+            r.raise_for_status()
 
             reply = r.json()["choices"][0]["message"]["content"]
 
